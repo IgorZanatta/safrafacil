@@ -154,8 +154,8 @@ const TipoListDemo = () => {
         setorService.listarTodos()
         .then((response) => {
             setSetores(response.data);
-            const setor = response.data.find(setor => setor.id === setorId) || tipoVazio.setor;
-            setTipo({
+            const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipo.setor;
+                setTipo({
                 ...tipoVazio,
                 setor
             });

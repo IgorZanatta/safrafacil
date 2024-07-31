@@ -103,7 +103,7 @@ const SetorList: React.FC = () => {
         fazendaService.listarTodos()
             .then((response) => {
                 setFazendas(response.data);
-                const fazenda = response.data.find(fazenda => fazenda.id === fazendaId) || setorVazio.fazenda;
+                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
                 setSetor({
                     ...setorVazio,
                     fazenda

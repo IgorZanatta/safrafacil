@@ -5,7 +5,7 @@ import { classNames } from 'primereact/utils';
 import React, { forwardRef, useContext, useImperativeHandle, useRef, useState } from 'react';
 import { AppTopbarRef } from '@/types';
 import { LayoutContext } from './context/layoutcontext';
-import { Calendar } from 'primereact/calendar';
+import { Calendar, CalendarSelectEvent } from 'primereact/calendar'; // Usamos CalendarSelectEvent
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { layoutConfig, layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
@@ -25,10 +25,12 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         setCalendarVisible(!calendarVisible);
     };
 
-    const handleDateSelect = (e) => {
-        const selectedDate = e.value;
-        const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
-        window.location.href = `/pages/tipolistdata/${formattedDate}`;
+    const handleDateSelect = (e: CalendarSelectEvent) => { // Usamos CalendarSelectEvent
+        const selectedDate = e.value as Date;
+        if (selectedDate) {
+            const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+            window.location.href = `/pages/tipolistdata/${formattedDate}`;
+        }
     };
 
     const logout = () => {

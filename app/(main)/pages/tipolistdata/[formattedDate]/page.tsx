@@ -37,7 +37,8 @@ const TipoListDemo = () => {
                 id: 0,
                 nome: '',
                 tamanho: '',
-                safra: { id: 0, qual_safra: '' }
+                safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
+                usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
             }
         }
     };
@@ -59,6 +60,7 @@ const TipoListDemo = () => {
     const toast = useRef<Toast>(null);
     const tipoService = new TipoService();
     const setorService = new SetorService();
+    const router = useRouter();
 
     const sortOptions = [
         { label: 'Lucro Maior para Menor', value: '!lucro' },
@@ -70,9 +72,9 @@ const TipoListDemo = () => {
     useEffect(() => {
         const pathname = window.location.pathname;
         const dateParam = pathname.split('/').pop(); // Extrai a data da URL
-
         if (dateParam) {
-            tipoService.listarPorData(dateParam).then((response) => {
+            const formattedDate = dateParam; // Defina `formattedDate` aqui como uma string
+            tipoService.listarPorData(formattedDate).then((response) => {
                 setDataViewValue(response.data);
             }).catch((error) => {
                 console.error(error);
@@ -191,17 +193,22 @@ const TipoListDemo = () => {
                 setTipo(tipoVazio);
                 setFile(null);
                 setExistingAnexos(null);
-                tipoService.listarPorData(formattedDate).then((response) => {
-                    setDataViewValue(response.data);
-                }).catch((error) => {
-                    console.error(error);
-                    toast.current?.show({
-                        severity: 'error',
-                        summary: 'Erro',
-                        detail: 'Erro ao carregar tipos',
-                        life: 3000
+                const pathname = window.location.pathname;
+                const dateParam = pathname.split('/').pop(); // Extrai a data da URL
+                if (dateParam) {
+                    const formattedDate = dateParam; // Defina `formattedDate` aqui como uma string
+                    tipoService.listarPorData(formattedDate).then((response) => {
+                        setDataViewValue(response.data);
+                    }).catch((error) => {
+                        console.error(error);
+                        toast.current?.show({
+                            severity: 'error',
+                            summary: 'Erro',
+                            detail: 'Erro ao carregar tipos',
+                            life: 3000
+                        });
                     });
-                });
+                }
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Sucesso!',
