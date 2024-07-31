@@ -1,5 +1,4 @@
 {
-  "homepage": "https://igorzanatta.github.io/safrafacil/",
   "name": "safrafacil",
   "version": "10.1.0",
   "private": true,
@@ -8,9 +7,7 @@
     "build": "next build",
     "start": "next start",
     "format": "prettier --write \"{app,demo,layout,types,service}/**/*.{js,ts,tsx,d.ts}\"",
-    "lint": "next lint",
-    "export": "next export",
-    "deploy": "next build && next export && gh-pages -d out"
+    "lint": "next lint"
   },
   "dependencies": {
     "@types/node": "20.3.1",
