@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const isProd = process.env.NODE_ENV === 'production';
 
-module.exports = nextConfig
+const nextConfig = {
+  assetPrefix: isProd ? '/safrafacil/' : '',
+  basePath: isProd ? '/safrafacil' : '',
+  trailingSlash: true,
+};
+
+module.exports = nextConfig;
