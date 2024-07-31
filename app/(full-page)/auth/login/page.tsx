@@ -37,7 +37,7 @@ const LoginPage = () => {
                 if (toast.current) {
                     toast.current.show({ severity: 'success', summary: 'Sucesso', detail: 'Login realizado com sucesso!', life: 3000 });
                 }
-                router.push('/safrafacil/pages/home');
+                router.push('/pages/home');
             })
             .catch((error) => {
                 console.error('Login Error:', error);
@@ -51,7 +51,7 @@ const LoginPage = () => {
         <div className={classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' })}>
             <Toast ref={toast} />
             <div className="flex flex-column align-items-center justify-content-center">
-                <img src={`/safrafacil/layout/images/logo-${layoutConfig.colorScheme === 'light' ? 'dark' : 'white'}.svg`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
+                <img src={`/layout/images/logo-${layoutConfig.colorScheme === 'light' ? 'dark' : 'white'}.svg`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
                 <div
                     style={{
                         borderRadius: '56px',
@@ -76,10 +76,10 @@ const LoginPage = () => {
                             <Password inputId="senha" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Password" toggleMask className="w-full mb-5" inputClassName="w-full p-3 md:w-30rem"></Password>
 
                             <div className="flex align-items-center justify-content-between mb-5 gap-5">                            
-                                <Link href="/safrafacil/auth/newuser" className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
+                                <Link href="/auth/newuser" className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
                                     Sou novo por aqui!
                                 </Link>
-                                <Link href="/safrafacil/auth/newpassword" className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
+                                <Link href="/auth/newpassword" className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
                                     Forgot password?
                                 </Link>
                             </div>
