@@ -38,9 +38,8 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         <html lang="en" suppressHydrationWarning>
             <head>
                 <title>SafraFacil</title>
-                <link rel="icon" href="/safrafacil/favicon.ico" />
-                <link id="theme-css" href={`/safrafacil/themes/lara-light-indigo/theme.css`} rel="stylesheet" />
-            </head>
+                <link rel="icon" href="/favicon.ico" />
+                <link id="theme-css" href={`/themes/lara-light-indigo/theme.css`} rel="stylesheet" />            </head>
             <body>
                 <PrimeReactProvider>
                     <LayoutProvider>
