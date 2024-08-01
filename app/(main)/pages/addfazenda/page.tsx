@@ -37,22 +37,23 @@ const Fazenda = () => {
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
 
     useEffect(() => {
-        const safraService = new SafraService();
-        safraService.listarTodos().then((response) => {
-            setSafras(response.data);
-        }).catch((error) => {
-            console.log(error);
-        });
+        const userId = localStorage.getItem('USER_ID');
+        if (userId) {
+            const safraService = new SafraService();
+            safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                setSafras(response.data);
+            }).catch((error) => {
+                console.log(error);
+            });
 
-        if (!fazendas) {
-            fazendaService.listarTodos().then((response) => {
+            fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
                 console.log(response.data);
                 setFazendas(response.data);
             }).catch((error) => {
                 console.log(error);
             });
         }
-    }, [fazendas]);
+    }, []);
 
     const openNew = () => {
         setFazenda(fazendaVazio);
@@ -67,7 +68,15 @@ const Fazenda = () => {
 
     const saveFazenda = () => {
         setSubmitted(true);
-
+        const userId = localStorage.getItem('USER_ID');
+    
+        if (userId) {
+            fazenda.usuario.id = parseInt(userId ?? "0", 10);
+        } else {
+            console.error('User ID não encontrado no localStorage');
+            return;
+        }
+    
         if (fazenda.nome && fazenda.tamanho && fazenda.safra && fazenda.safra.id) {
             if (!fazenda.id) {
                 fazendaService.inserir(fazenda)
@@ -79,6 +88,13 @@ const Fazenda = () => {
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Fazenda cadastrada com sucesso!'
+                        });
+                        // Recarregar a lista de fazendas após a inserção
+                        const userId = localStorage.getItem('USER_ID');
+                        fazendaService.listarPorUsuario(parseInt(userId ?? "0")).then((response) => {
+                            setFazendas(response.data);
+                        }).catch((error) => {
+                            console.log(error);
                         });
                     }).catch((error) => {
                         console.log(error);
@@ -100,6 +116,13 @@ const Fazenda = () => {
                             summary: 'Sucesso!',
                             detail: 'Fazenda alterada com sucesso!'
                         });
+                        // Recarregar a lista de fazendas após a alteração
+                        const userId = localStorage.getItem('USER_ID');
+                        fazendaService.listarPorUsuario(parseInt(userId ?? "0")).then((response) => {
+                            setFazendas(response.data);
+                        }).catch((error) => {
+                            console.log(error);
+                        });
                     }).catch((error) => {
                         console.log(error);
                         const message = error.response?.data?.message || 'Erro ao alterar!';
@@ -111,7 +134,8 @@ const Fazenda = () => {
                     });
             }
         }
-    }
+    };
+    
 
     const exportCSV = () => {
         dt.current?.exportCSV();
@@ -119,16 +143,16 @@ const Fazenda = () => {
 
     const onInputChange = (e: { target: { value: any } }, name: string) => {
         const val = (e.target && e.target.value) || '';
-
         setFazenda((prevFazenda) => ({
             ...prevFazenda,
-            [name]: name === 'safra' ? { id: val } : val,
+            [name]: val,
         }));
     };
 
     const onSelectSafraChange = (e: DropdownChangeEvent) => {
         const val = e.value;
         setSelectedSafra(val);
+        setFazenda(prevFazenda => ({ ...prevFazenda, safra: val }));
     };
 
     const leftToolbarTemplate = () => {
@@ -142,7 +166,7 @@ const Fazenda = () => {
     };
 
     const rightToolbarTemplate = () => {
-        
+        // Conteúdo para o lado direito da toolbar (se necessário)
     };
 
     const nomeBodyTemplate = (rowData: Projeto.Fazenda) => {
@@ -173,7 +197,7 @@ const Fazenda = () => {
     };
 
     const actionBodyTemplate = (rowData: Projeto.Fazenda) => {
-        
+        // Template para ações (editar/excluir) se necessário
     };
 
     const header = (

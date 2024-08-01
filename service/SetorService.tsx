@@ -5,4 +5,8 @@ export class SetorService extends BaseService {
     constructor() {
         super("/setor");
     }
+
+    listarPorUsuario(usuarioId: number) {
+        return axiosInstance.get(`${this.url}/usuario/${usuarioId}`);
+    }
 }

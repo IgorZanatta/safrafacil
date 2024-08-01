@@ -37,4 +37,30 @@ export class LoginService {
         console.log('Redefinir Senha - Login:', login, 'Nova Senha:', novaSenha); // Log para depuração
         return axiosInstance.post('/auth/redefinirSenha', { login, novaSenha });
     }
+
+    checkTokenValidity() {
+        const token = localStorage.getItem('TOKEN_APLICACAO_FRONTEND');
+        if (!token) return -1; // Retorna -1 se o token não existir
+
+        const { exp } = JSON.parse(atob(token.split('.')[1]));
+        const expirationTime = exp * 1000;
+        const currentTime = new Date().getTime();
+
+        return expirationTime - currentTime;
+    }
+
+    async renewToken() {
+        const response = await axiosInstance.post('/auth/renew-token', null, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('TOKEN_APLICACAO_FRONTEND')}`
+            }
+        });
+
+        if (response.status === 200) {
+            localStorage.setItem('TOKEN_APLICACAO_FRONTEND', response.data.token);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

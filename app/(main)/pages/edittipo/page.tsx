@@ -59,21 +59,38 @@ const Tipo = () => {
     const [setores, setSetores] = useState<Projeto.Setor[]>([]);
 
     useEffect(() => {
-        tipoService.listarTodos().then((response) => {
+        const usuarioId = localStorage.getItem('USER_ID');
+        if (!usuarioId) {
+            window.location.href = '/login';
+            return;
+        }
+
+        tipoService.listarPorUsuario(Number(usuarioId)).then((response) => {
             setTipos(response.data);
         }).catch((error) => {
             console.log(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Erro!',
+                detail: 'Erro ao carregar tipos de atividade!'
+            });
         });
     }, []);
 
     useEffect(() => {
+        const usuarioId = localStorage.getItem('USER_ID');
+        if (!usuarioId) {
+            window.location.href = '/login';
+            return;
+        }
+
         if (tipoDialog) {
-            setorService.listarTodos()
+            setorService.listarPorUsuario(Number(usuarioId))
                 .then((response) => setSetores(response.data))
                 .catch(error => {
                     console.log(error);
                     toast.current?.show({
-                        severity: 'info',
+                        severity: 'error',
                         summary: 'Erro!',
                         detail: 'Erro ao carregar a lista de setores!'
                     });

@@ -14,14 +14,15 @@ const AppMenu = () => {
     useEffect(() => {
         const fetchFazendasEsetores = async () => {
             try {
+                const usuarioId = localStorage.getItem('USER_ID'); // Pegando o ID do usuário logado
                 const fazendaService = new FazendaService();
                 const setorService = new SetorService();
 
-                const fazendasResponse = await fazendaService.listarTodos();
+                const fazendasResponse = await fazendaService.listarPorUsuario(Number(usuarioId)); // Chamando o serviço para listar fazendas do usuário
                 const fazendasData = fazendasResponse.data;
 
                 const fazendasComSetores = await Promise.all(fazendasData.map(async (fazenda: any) => {
-                    const setoresResponse = await setorService.listarPorFazenda(fazenda.id);
+                    const setoresResponse = await setorService.listarPorFazenda(fazenda.id); // Chamando o serviço para listar setores da fazenda
                     const setoresData = setoresResponse.data;
 
                     return {

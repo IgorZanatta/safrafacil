@@ -23,6 +23,7 @@ const Fazenda = () => {
         safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
         usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
     };
+
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[] | null>(null);
     const [fazendaDialog, setFazendaDialog] = useState(false);
     const [deleteFazendaDialog, setDeleteFazendaDialog] = useState(false);
@@ -38,22 +39,22 @@ const Fazenda = () => {
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
 
     useEffect(() => {
-        const safraService = new SafraService();
-        safraService.listarTodos().then((response) => {
-            setSafras(response.data);
-        }).catch((error) => {
-            console.log(error);
-        });
+        const userId = localStorage.getItem('USER_ID');
+        if (userId) {
+            const safraService = new SafraService();
+            safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                setSafras(response.data);
+            }).catch((error) => {
+                console.log(error);
+            });
 
-        if (!fazendas) {
-            fazendaService.listarTodos().then((response) => {
-                console.log(response.data);
+            fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
                 setFazendas(response.data);
             }).catch((error) => {
                 console.log(error);
             });
         }
-    }, [fazendaService, fazendas]);
+    }, []);
 
     const openNew = () => {
         setFazenda(fazendaVazio);
@@ -76,6 +77,14 @@ const Fazenda = () => {
 
     const saveFazenda = () => {
         setSubmitted(true);
+        const userId = localStorage.getItem('USER_ID');
+
+        if (userId) {
+            fazenda.usuario.id = parseInt(userId ?? "0", 10);
+        } else {
+            console.error('User ID não encontrado no localStorage');
+            return;
+        }
 
         if (fazenda.nome && fazenda.tamanho && fazenda.safra && fazenda.safra.id) {
             if (!fazenda.id) {
@@ -88,6 +97,12 @@ const Fazenda = () => {
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Fazenda cadastrada com sucesso!'
+                        });
+                        // Recarregar a lista de fazendas após a inserção
+                        fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setFazendas(response.data);
+                        }).catch((error) => {
+                            console.log(error);
                         });
                     }).catch((error) => {
                         console.log(error);
@@ -108,6 +123,12 @@ const Fazenda = () => {
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Fazenda alterada com sucesso!'
+                        });
+                        // Recarregar a lista de fazendas após a alteração
+                        fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setFazendas(response.data);
+                        }).catch((error) => {
+                            console.log(error);
                         });
                     }).catch((error) => {
                         console.log(error);
@@ -143,6 +164,12 @@ const Fazenda = () => {
                     summary: 'Sucesso!',
                     detail: 'Fazenda Excluida'
                 });
+                const userId = localStorage.getItem('USER_ID');
+                fazendaService.listarPorUsuario(parseInt(userId ?? "0")).then((response) => {
+                    setFazendas(response.data);
+                }).catch((error) => {
+                    console.log(error);
+                });
             }).catch((error) => {
                 toast.current?.show({
                     severity: 'error',
@@ -177,7 +204,12 @@ const Fazenda = () => {
                     }
                 }
             })).then(() => {
-                setFazendas((prevFazendas) => prevFazendas?.filter(fazenda => !selectedFazendas.includes(fazenda)) || []);
+                const userId = localStorage.getItem('USER_ID');
+                fazendaService.listarPorUsuario(parseInt(userId ?? "0")).then((response) => {
+                    setFazendas(response.data);
+                }).catch((error) => {
+                    console.log(error);
+                });
                 setSelectedFazendas([]);
                 setDeleteFazendasDialog(false);
                 toast.current?.show({
@@ -225,7 +257,7 @@ const Fazenda = () => {
     };
 
     const rightToolbarTemplate = () => {
-        
+        // Conteúdo para o lado direito da toolbar (se necessário)
     };
 
     const nomeBodyTemplate = (rowData: Projeto.Fazenda) => {
@@ -343,7 +375,6 @@ const Fazenda = () => {
                     </DataTable>
 
                     <Dialog visible={fazendaDialog} style={{ width: '450px' }} header="Detalhes da Fazenda" modal className="p-fluid" footer={fazendaDialogFooter} onHide={hideDialog}>
-
                         <div className="field">
                             <label htmlFor="nome">Nome</label>
                             <InputText

@@ -46,8 +46,9 @@ const Setor = () => {
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
 
     useEffect(() => {
-        if (!setores) {
-            setorService.listarTodos().then((response) => {
+        const userId = localStorage.getItem('USER_ID');
+        if (userId) {
+            setorService.listarPorUsuario(parseInt(userId)).then((response) => {
                 const setoresData = response.data;
                 setSetores(setoresData);
 
@@ -58,20 +59,23 @@ const Setor = () => {
                 console.log(error);
             });
         }
-    }, [setorService, setores]);
+    }, [setorService]);
 
     useEffect(() => {
         if (setorDialog) {
-            fazendaService.listarTodos()
-                .then((response) => setFazendas(response.data))
-                .catch(error => {
-                    console.log(error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de fazendas!'
+            const userId = localStorage.getItem('USER_ID');
+            if (userId) {
+                fazendaService.listarPorUsuario(parseInt(userId))
+                    .then((response) => setFazendas(response.data))
+                    .catch(error => {
+                        console.log(error);
+                        toast.current?.show({
+                            severity: 'info',
+                            summary: 'Erro!',
+                            detail: 'Erro ao carregar a lista de fazendas!'
+                        });
                     });
-                });
+            }
         }
     }, [setorDialog, fazendaService]);
 

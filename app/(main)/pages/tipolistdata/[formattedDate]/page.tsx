@@ -17,7 +17,6 @@ import { SetorService } from '../../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
-import { useRouter } from 'next/router';
 
 const TipoListDemo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -60,7 +59,6 @@ const TipoListDemo = () => {
     const toast = useRef<Toast>(null);
     const tipoService = new TipoService();
     const setorService = new SetorService();
-    const router = useRouter();
 
     const sortOptions = [
         { label: 'Lucro Maior para Menor', value: '!lucro' },
@@ -90,8 +88,10 @@ const TipoListDemo = () => {
     }, []);
 
     useEffect(() => {
-        if (tipoDialog) {
-            setorService.listarTodos()
+        const usuarioId = localStorage.getItem('USER_ID'); // Obtém o ID do usuário logado
+
+        if (tipoDialog && usuarioId) {
+            setorService.listarPorUsuario(Number(usuarioId))
                 .then((response) => setSetores(response.data))
                 .catch(error => {
                     console.log(error);
@@ -138,11 +138,26 @@ const TipoListDemo = () => {
     );
 
     const openNew = () => {
-        setTipo(tipoVazio);
-        setSubmitted(false);
-        setFile(null);
-        setExistingAnexos(null);
-        setTipoDialog(true);
+        const usuarioId = localStorage.getItem('USER_ID');
+        if (usuarioId) {
+            setorService.listarPorUsuario(Number(usuarioId))
+                .then((response) => {
+                    setSetores(response.data);
+                    setTipo(tipoVazio);
+                    setSubmitted(false);
+                    setFile(null);
+                    setExistingAnexos(null);
+                    setTipoDialog(true);
+                })
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de setores!'
+                    });
+                });
+        }
     };
 
     const hideDialog = () => {
@@ -228,6 +243,7 @@ const TipoListDemo = () => {
             });
         }
     };
+
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
         const val = (e.target && e.target.value) || '';
 

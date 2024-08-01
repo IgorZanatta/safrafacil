@@ -51,7 +51,7 @@ const Documentation = () => {
 
                         <h4>Quem Sou Eu</h4>
                         <p>
-                            Meu nome é Igor Zanatta Saraiva. Sou estudante de Engenharia de Computação com foco em Desenvolvimento Back-End. Tenho experiência com Java e Spring Boot, incluindo a implementação de segurança com JWT e integração com bancos de dados relacionais usando PostgreSQL. No front-end, possuo conhecimentos em React, JavaScript, HTML, CSS e TypeScript. Atualmente, estou desenvolvendo um projeto completo utilizando essas tecnologias, aplicando boas práticas e padrões de design. Procuro oportunidades de estágio para aplicar e expandir meus conhecimentos em um ambiente profissional dinâmico e inovador.
+                            Meu nome é Igor Zanatta Saraiva. Sou estudante de Engenharia de Computação com foco em Desenvolvimento Back-End. Tenho experiência com Java e Spring Boot, incluindo a implementação de segurança com JWT e integração com bancos de dados relacionais usando PostgreSQL. No front-end, possuo conhecimentos em React, JavaScript, HTML, CSS e TypeScript. Atualmente, estou desenvolvendo um projeto completo utilizando essas tecnologias, aplicando boas práticas e padrões de design.
                         </p>
                     </div>
                 </div>

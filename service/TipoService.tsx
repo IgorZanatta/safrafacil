@@ -6,4 +6,7 @@ export class TipoService extends BaseService {
         super("/tipo");
     }
 
+    listarPorUsuario(usuarioId: number) {
+        return axiosInstance.get(`${this.url}/usuario/${usuarioId}`);
+    }
 }
