@@ -3,6 +3,7 @@ import axios from "axios";
 export const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BACKEND_URL_API || 'https://safrafacilapi.onrender.com',
 });
+
 axiosInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('TOKEN_APLICACAO_FRONTEND');          

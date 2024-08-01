@@ -59,7 +59,7 @@ const Setor = () => {
                 console.log(error);
             });
         }
-    }, []);
+    }, [setorService]);
 
     useEffect(() => {
         if (setorDialog) {
@@ -77,7 +77,7 @@ const Setor = () => {
                     });
             }
         }
-    }, []);
+    }, [setorDialog, fazendaService]);
 
     const openNew = () => {
         setSetor(setorVazio);
