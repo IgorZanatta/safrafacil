@@ -106,7 +106,7 @@ const TipoListDemo = () => {
                     });
             }
         }
-    }, [tipoDialog]);
+    }, []);
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;

@@ -99,7 +99,7 @@ const SetorList: React.FC = () => {
                     });
             }
         }
-    }, [setorDialog]);
+    }, []);
 
     const openNew = () => {
         const usuarioId = localStorage.getItem('USER_ID');

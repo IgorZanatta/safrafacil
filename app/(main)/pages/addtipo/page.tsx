@@ -95,7 +95,7 @@ const Tipo = () => {
                     });
                 });
         }
-    }, [tipoDialog]);
+    }, []);
 
     const openNew = () => {
         setTipo(tipoVazio);

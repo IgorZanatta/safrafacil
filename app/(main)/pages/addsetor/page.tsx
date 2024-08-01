@@ -69,7 +69,7 @@ const Setor = () => {
                     });
             }
         }
-    }, [setorDialog]);
+    }, []);
 
     const openNew = () => {
         setSetor(setorVazio);
