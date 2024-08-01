@@ -5,7 +5,7 @@ import { classNames } from 'primereact/utils';
 import React, { forwardRef, useContext, useImperativeHandle, useRef, useState } from 'react';
 import { AppTopbarRef } from '@/types';
 import { LayoutContext } from './context/layoutcontext';
-import { Calendar, CalendarSelectEvent } from 'primereact/calendar'; // Usamos CalendarSelectEvent
+import { Calendar, CalendarSelectEvent } from 'primereact/calendar';
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { layoutConfig, layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
