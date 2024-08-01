@@ -37,7 +37,6 @@ export class LoginService {
         console.log('Redefinir Senha - Login:', login, 'Nova Senha:', novaSenha); // Log para depuração
         return axiosInstance.post('/auth/redefinirSenha', { login, novaSenha });
     }
-
     checkTokenValidity() {
         const token = localStorage.getItem('TOKEN_APLICACAO_FRONTEND');
         if (!token) return -1; // Retorna -1 se o token não existir
