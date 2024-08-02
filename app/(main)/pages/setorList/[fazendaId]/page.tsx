@@ -15,7 +15,7 @@ import { FazendaService } from '../../../../../service/FazendaService';
 import { useRouter } from 'next/router';
 
 const SetorList: React.FC = () => {
-    let setorVazio: Projeto.Setor = {
+    const setorVazio: Projeto.Setor = {
         id: 0,
         nome: '',
         tipo_setor: '',
@@ -41,16 +41,15 @@ const SetorList: React.FC = () => {
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
     const router = useRouter();
-    const { fazendaId } = router.query;  // Use useRouter to extract the query parameter
+    const { fazendaId } = router.query;
 
     useEffect(() => {
         if (fazendaId) {
             const id = parseInt(fazendaId as string, 10);
             console.log('ID da fazenda da URL:', id);
 
-            // Buscar a fazenda pelo ID e definir o nome da fazenda
             fazendaService.buscarPorId(id).then((response: any) => {
-                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
+                console.log("Nome da fazenda obtido:", response.data.nome);
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
@@ -59,7 +58,6 @@ const SetorList: React.FC = () => {
                 console.error("Erro ao buscar a fazenda:", error);
             });
 
-            // Listar setores por fazenda
             fetchSetores(id);
         } else {
             console.error("ID da fazenda não encontrado na URL");
@@ -70,11 +68,9 @@ const SetorList: React.FC = () => {
         console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
         setorService.listarPorFazenda(fazendaId).then((response: any) => {
             console.log('Resposta da requisição listarPorFazenda:', response.data);
-            const setoresData = response.data;
-            setSetores(setoresData);
+            setSetores(response.data);
 
-            // Extrair os tipos de setor únicos e converter para array de strings
-            const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
+            const tiposUnicos = Array.from(new Set(response.data.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
             setTipoSetores(tiposUnicos);
         }).catch((error: any) => {
             console.error("Erro ao carregar setores:", error);
@@ -144,7 +140,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(parseInt(fazendaId as string, 10)); // Explicitly cast fazendaId
+                        fetchSetores(parseInt(fazendaId as string, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -152,11 +148,11 @@ const SetorList: React.FC = () => {
                         detail: 'Setor cadastrado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response.data.message);
+                    console.log(error.response?.data?.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao salvar! ' + error.response.data.message
+                        detail: 'Erro ao salvar! ' + error.response?.data?.message
                     })
                 });
         } else {
@@ -165,7 +161,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(parseInt(fazendaId as string, 10)); // Explicitly cast fazendaId
+                        fetchSetores(parseInt(fazendaId as string, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -173,11 +169,11 @@ const SetorList: React.FC = () => {
                         detail: 'Setor alterado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response.data.message);
+                    console.log(error.response?.data?.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao alterar! ' + error.response.data.message
+                        detail: 'Erro ao alterar! ' + error.response?.data?.message
                     })
                 })
         }
