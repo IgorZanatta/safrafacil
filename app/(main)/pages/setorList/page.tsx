@@ -12,7 +12,6 @@ import { Projeto } from '@/types';
 import { SetorService } from '../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../service/FazendaService';
-import { useRouter } from 'next/router';
 
 const SetorList: React.FC = () => {
     const setorVazio: Projeto.Setor = {
@@ -40,7 +39,6 @@ const SetorList: React.FC = () => {
     const toast = useRef<Toast>(null);
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
-    const router = useRouter();
 
     useEffect(() => {
         const fazendaId = localStorage.getItem('FAZENDA_ID');
