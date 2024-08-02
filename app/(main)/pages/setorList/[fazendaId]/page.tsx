@@ -50,7 +50,7 @@ const SetorList: React.FC = () => {
 
             // Buscar a fazenda pelo ID e definir o nome da fazenda
             fazendaService.buscarPorId(fazendaId).then((response) => {
-                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
+                console.log("Nome da fazenda obtido:", response.data.nome);
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
