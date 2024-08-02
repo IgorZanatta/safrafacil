@@ -17,6 +17,7 @@ import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
 import { TipoService } from '../../../../service/TipoService';
 import { SetorService } from '../../../../service/SetorService';
+import { useMemo } from 'react';
 
 const Tipo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -52,18 +53,17 @@ const Tipo = () => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [file, setFile] = useState<File | null>(null);
     const toast = useRef<Toast>(null);
-    const dt = useRef<DataTable<any>>(null);
-    const tipoService = new TipoService();
-    const setorService = new SetorService();
+    const dt = useRef<DataTable<any>>(null); 
+    const tipoService = useMemo(() => new TipoService(), []);
+    const setorService = useMemo(() => new SetorService(), []);
     const [setores, setSetores] = useState<Projeto.Setor[]>([]);
 
     useEffect(() => {
         const usuarioId = localStorage.getItem('USER_ID');
         if (!usuarioId) {
-            window.location.href = '/login'; // Redireciona para a página de login se o ID do usuário não estiver presente
             return;
         }
-
+    
         tipoService.listarPorUsuario(Number(usuarioId)).then((response) => {
             setTipos(response.data);
         }).catch((error) => {
@@ -74,15 +74,14 @@ const Tipo = () => {
                 detail: 'Erro ao carregar tipos de atividade!'
             });
         });
-    }, []);
-
+    }, [tipoService]);
+    
     useEffect(() => {
         const usuarioId = localStorage.getItem('USER_ID');
         if (!usuarioId) {
-            window.location.href = '/login'; // Redireciona para a página de login se o ID do usuário não estiver presente
             return;
         }
-
+    
         if (tipoDialog) {
             setorService.listarPorUsuario(Number(usuarioId))
                 .then((response) => setSetores(response.data))
@@ -95,7 +94,8 @@ const Tipo = () => {
                     });
                 });
         }
-    }, [tipoDialog]);
+    }, [tipoDialog, setorService]);
+    
 
     const openNew = () => {
         setTipo(tipoVazio);

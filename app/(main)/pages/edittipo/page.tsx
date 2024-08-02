@@ -17,6 +17,7 @@ import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
 import { TipoService } from '../../../../service/TipoService';
 import { SetorService } from '../../../../service/SetorService';
+import { useMemo } from 'react';
 
 const Tipo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -60,10 +61,6 @@ const Tipo = () => {
 
     useEffect(() => {
         const usuarioId = localStorage.getItem('USER_ID');
-        if (!usuarioId) {
-            window.location.href = '/login';
-            return;
-        }
 
         tipoService.listarPorUsuario(Number(usuarioId)).then((response) => {
             setTipos(response.data);
@@ -75,7 +72,7 @@ const Tipo = () => {
                 detail: 'Erro ao carregar tipos de atividade!'
             });
         });
-    }, []);
+    }, [tipoService]);
 
     useEffect(() => {
         const usuarioId = localStorage.getItem('USER_ID');
@@ -96,7 +93,7 @@ const Tipo = () => {
                     });
                 });
         }
-    }, [tipoDialog]);
+    }, [tipoDialog, setorService]);
 
     const openNew = () => {
         setTipo(tipoVazio);

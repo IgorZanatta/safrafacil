@@ -13,6 +13,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SetorService } from '../../../../service/SetorService';
 import { Projeto } from '@/types';
 import { FazendaService } from '../../../../service/FazendaService';
+import { useMemo } from 'react';
 
 const Setor = () => {
     const setorVazio: Projeto.Setor = {
@@ -37,8 +38,9 @@ const Setor = () => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const setorService = new SetorService();
-    const fazendaService = new FazendaService();
+
+    const setorService = useMemo(() => new SetorService(), []);
+    const fazendaService = useMemo(() => new FazendaService(), []);
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
 
     useEffect(() => {
@@ -51,8 +53,8 @@ const Setor = () => {
                 console.log(error);
             });
         }
-    }, []);
-
+    }, [setorService]);
+    
     useEffect(() => {
         if (setorDialog) {
             const userId = localStorage.getItem('USER_ID');
@@ -69,7 +71,7 @@ const Setor = () => {
                     });
             }
         }
-    }, [setorDialog]);
+    }, [setorDialog, fazendaService]);
 
     const openNew = () => {
         setSetor(setorVazio);

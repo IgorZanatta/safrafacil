@@ -12,6 +12,7 @@ import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import React, { useEffect, useRef, useState } from 'react';
 import { FazendaService } from '../../../../service/FazendaService';
 import { SafraService } from '../../../../service/SafraService';
+import { useMemo } from 'react';
 
 import { Projeto } from '@/types';
 
@@ -32,10 +33,11 @@ const Fazenda = () => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const fazendaService = new FazendaService();
     const [safras, setSafras] = useState<Projeto.Safra[]>([]);
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
-
+    const fazendaService = useMemo(() => new FazendaService(), []);
+    const safraService = useMemo(() => new SafraService(), []);
+    
     useEffect(() => {
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
@@ -53,7 +55,7 @@ const Fazenda = () => {
                 console.log(error);
             });
         }
-    }, [fazendaService]);
+    }, [fazendaService, safraService]);
 
     const openNew = () => {
         setFazenda(fazendaVazio);

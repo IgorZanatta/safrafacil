@@ -10,6 +10,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafraService } from '../../../../service/SafraService';
+import { useMemo } from 'react';
 
 import { Projeto } from '@/types';
 
@@ -27,7 +28,7 @@ const Safra = () => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const safraService = new SafraService();
+    const safraService = useMemo(() => new SafraService(), []);
 
     useEffect(() => {
         const userId = localStorage.getItem('USER_ID');
@@ -38,7 +39,7 @@ const Safra = () => {
                 console.log(error);
             });
         }
-    }, []);
+    }, [safraService]);
 
     const openNew = () => {
         setSafra(safraVazia);

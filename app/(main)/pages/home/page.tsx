@@ -234,7 +234,7 @@ const Fazenda = () => {
         if (id !== undefined) {
             localStorage.setItem('FAZENDA_ID', id.toString());
             console.log('FAZENDA_ID set in localStorage:', id); // Adicione este log
-            router.push(`/pages/setorList`);
+            router.push(`/pages/setor_List`);
         } else {
             console.error('ID da Fazenda é undefined');
         }
@@ -302,7 +302,7 @@ const Fazenda = () => {
                         {filteredFazendas.map((fazenda) => (
                             <Card 
                                 key={fazenda.id}
-                                title={`${fazenda.nome}`} 
+                                title={` ${fazenda.nome}`} 
                                 subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
                                 className="fazenda-card"
                                 style={{ cursor: 'pointer' }}
