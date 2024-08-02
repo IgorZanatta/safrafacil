@@ -14,7 +14,7 @@ import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../../service/FazendaService';
 
 const SetorList: React.FC = () => {
-    let setorVazio: Projeto.Setor = {
+    const setorVazio: Projeto.Setor = {
         id: 0,
         nome: '',
         tipo_setor: '',
@@ -98,12 +98,11 @@ const SetorList: React.FC = () => {
         }
     }, [setorDialog]);
 
-
     const openNew = () => {
         fazendaService.listarTodos()
-            .then((response) => {
+            .then((response: any) => {
                 setFazendas(response.data);
-                const fazenda = response.data.find(fazenda => fazenda.id === fazendaId) || setorVazio.fazenda;
+                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
                 setSetor({
                     ...setorVazio,
                     fazenda
@@ -111,7 +110,7 @@ const SetorList: React.FC = () => {
                 setSubmitted(false);
                 setSetorDialog(true);
             })
-            .catch(error => {
+            .catch((error: any) => {
                 console.log(error);
                 toast.current?.show({
                     severity: 'info',
@@ -131,7 +130,7 @@ const SetorList: React.FC = () => {
 
         if (!setor.id) {
             setorService.inserir(setor)
-                .then((response) => {
+                .then((response: any) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
@@ -142,17 +141,17 @@ const SetorList: React.FC = () => {
                         summary: 'Sucesso!',
                         detail: 'Setor cadastrado com sucesso!'
                     });
-                }).catch((error) => {
+                }).catch((error: any) => {
                     console.log(error.response.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
                         detail: 'Erro ao salvar! ' + error.response.data.message
-                    })
+                    });
                 });
         } else {
             setorService.alterar(setor)
-                .then((response) => {
+                .then((response: any) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
@@ -163,14 +162,14 @@ const SetorList: React.FC = () => {
                         summary: 'Sucesso!',
                         detail: 'Setor alterado com sucesso!'
                     });
-                }).catch((error) => {
+                }).catch((error: any) => {
                     console.log(error.response.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
                         detail: 'Erro ao alterar! ' + error.response.data.message
-                    })
-                })
+                    });
+                });
         }
     };
 
@@ -189,7 +188,6 @@ const SetorList: React.FC = () => {
             fazenda
         }));
     };
-    
 
     const fazendaOptionTemplate = (option: Projeto.Fazenda) => {
         return (
