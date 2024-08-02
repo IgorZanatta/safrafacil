@@ -9,4 +9,8 @@ export class SetorService extends BaseService {
     listarPorUsuario(usuarioId: number) {
         return axiosInstance.get(`${this.url}/usuario/${usuarioId}`);
     }
+    
+    listarPorFazenda(fazendaId: number) {
+        return axiosInstance.get(`${this.url}/fazenda/${fazendaId}`);
+    }
 }
