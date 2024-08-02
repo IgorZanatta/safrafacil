@@ -1,8 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import Link from 'next/link';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
@@ -10,13 +11,13 @@ import { classNames } from 'primereact/utils';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../service/FazendaService';
 import { SafraService } from '../../../../service/SafraService';
-import { UsuarioService } from '../../../../service/UsuarioService';
+import { UsuarioService } from '../../../../service/UsuarioService'; // Adicione esta linha
+
 import { Projeto } from '@/types';
 import { Toolbar } from 'primereact/toolbar';
-import { useRouter } from 'next/router';
 
 const Fazenda = () => {
-    const fazendaVazio: Projeto.Fazenda = {
+    let fazendaVazio: Projeto.Fazenda = {
         id: 0,
         nome: '',
         tamanho: '',
@@ -24,7 +25,13 @@ const Fazenda = () => {
         usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
     };
 
-    const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
+    let safraVazia: Projeto.Safra = {
+        id: 0,
+        qual_safra: '',
+        usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
+    };
+
+    const [fazendas, setFazendas] = useState<Projeto.Fazenda[] | null>(null);
     const [hover, setHover] = useState(false);
     const [fazendaDialog, setFazendaDialog] = useState(false);
     const [fazenda, setFazenda] = useState<Projeto.Fazenda>(fazendaVazio);
@@ -32,50 +39,43 @@ const Fazenda = () => {
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
-    const fazendaService = useMemo(() => new FazendaService(), []);
-    const safraService = useMemo(() => new SafraService(), []);
+    const fazendaService = new FazendaService();
+    const safraService = new SafraService();
     const [userName, setUserName] = useState('');
+
     const [safras, setSafras] = useState<Projeto.Safra[]>([]);
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
+
     const [safraDialog, setSafraDialog] = useState(false);
-    const [safra, setSafra] = useState<Projeto.Safra>(fazendaVazio.safra);
-    const router = useRouter();
+    const [safra, setSafra] = useState<Projeto.Safra>(safraVazia);
 
     useEffect(() => {
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
             const usuarioService = new UsuarioService();
             usuarioService.buscarPorId(parseInt(userId)).then((response) => {
-                setUserName(response.data.nome);
+                setUserName(response.data.nome); // Supondo que a resposta contenha o nome do usuário
             }).catch((error) => {
                 console.log(error);
             });
         }
-    }, []);
-    
-    useEffect(() => {
-        const userId = localStorage.getItem('USER_ID');
-        if (userId) {
-            fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
+
+        safraService.listarTodos().then((response) => {
+            setSafras(response.data);
+        }).catch((error) => {
+            console.log(error);
+        });
+
+        if (!fazendas) {
+            fazendaService.listarTodos().then((response) => {
+                console.log(response.data);
                 setFazendas(response.data);
             }).catch((error) => {
                 console.log(error);
             });
-    
-            safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                console.log('Safras carregadas:', response.data);
-                setSafras(Array.isArray(response.data) ? response.data : []);
-            }).catch((error) => {
-                console.log(error);
-                setSafras([]);
-            });
         }
-    }, []);
-    
-    const filteredFazendas = fazendas.filter(fazenda =>
-        (!selectedSafra || (fazenda.safra && fazenda.safra.id === selectedSafra.id)) &&
-        (!globalFilter || fazenda.nome.toLowerCase().includes(globalFilter.toLowerCase()))
-    );
+    }, [fazendas]);
+
 
     const openNew = () => {
         setFazenda(fazendaVazio);
@@ -90,22 +90,14 @@ const Fazenda = () => {
 
     const saveFazenda = () => {
         setSubmitted(true);
-        const userId = localStorage.getItem('USER_ID');
-
-        if (userId) {
-            fazenda.usuario.id = parseInt(userId, 10);
-        } else {
-            console.error('User ID não encontrado no localStorage');
-            return;
-        }
 
         if (fazenda.nome && fazenda.tamanho && fazenda.safra && fazenda.safra.id) {
             if (!fazenda.id) {
                 fazendaService.inserir(fazenda)
-                    .then(() => {
+                    .then((response) => {
                         setFazendaDialog(false);
                         setFazenda(fazendaVazio);
-                        setFazendas([]);
+                        setFazendas(null);
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
@@ -122,10 +114,10 @@ const Fazenda = () => {
                     });
             } else {
                 fazendaService.alterar(fazenda)
-                    .then(() => {
+                    .then((response) => {
                         setFazendaDialog(false);
                         setFazenda(fazendaVazio);
-                        setFazendas([]);
+                        setFazendas(null);
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
@@ -145,7 +137,7 @@ const Fazenda = () => {
     }
 
     const openNewSafra = () => {
-        setSafra(fazendaVazio.safra);
+        setSafra(safraVazia);
         setSubmitted(false);
         setSafraDialog(true);
     };
@@ -159,9 +151,10 @@ const Fazenda = () => {
         setSubmitted(true);
         console.log('Saving Safra:', safra);
 
+        // Recuperar o ID do usuário do localStorage
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
-            safra.usuario.id = parseInt(userId, 10);
+            safra.usuario.id = parseInt(userId, 10); // Definir o ID do usuário no objeto safra
         } else {
             console.error('User ID não encontrado no localStorage');
             return;
@@ -170,12 +163,11 @@ const Fazenda = () => {
         if (safra.qual_safra) {
             if (!safra.id) {
                 safraService.inserir(safra)
-                    .then(() => {
+                    .then((response) => {
+                        console.log('Insert response:', response);
                         setSafraDialog(false);
-                        setSafra(fazendaVazio.safra);
-                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                            setSafras(Array.isArray(response.data) ? response.data : []);
-                        });
+                        setSafra(safraVazia);
+                        setSafras([]); // Substitua null por []
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
@@ -192,12 +184,11 @@ const Fazenda = () => {
                     });
             } else {
                 safraService.alterar(safra)
-                    .then(() => {
+                    .then((response) => {
+                        console.log('Update response:', response);
                         setSafraDialog(false);
-                        setSafra(fazendaVazio.safra);
-                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                            setSafras(Array.isArray(response.data) ? response.data : []);
-                        });
+                        setSafra(safraVazia);
+                        setSafras([]); // Substitua null por []
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
@@ -218,31 +209,21 @@ const Fazenda = () => {
 
     const onInputChange = (e: { target: { value: any } }, name: string) => {
         const val = (e.target && e.target.value) || '';
+
         setFazenda((prevFazenda) => ({
             ...prevFazenda,
-            [name]: val,
+            [name]: name === 'safra' ? { id: val } : val,
         }));
     };
 
     const onSelectSafraChange = (e: DropdownChangeEvent) => {
         const val = e.value;
         setSelectedSafra(val);
-        setFazenda(prevFazenda => ({ ...prevFazenda, safra: val }));
-    };
-
-    const handleFazendaClick = (id: number | undefined) => {
-        if (id !== undefined) {
-            localStorage.setItem('FAZENDA_ID', id.toString());
-            console.log('FAZENDA_ID set in localStorage:', id); // Adicione este log
-            router.push(`/pages/setorList/${id}`);
-        } else {
-            console.error('ID da Fazenda é undefined');
-        }
     };
 
     const leftToolbarTemplate = () => {
         return (
-            <>
+            <React.Fragment>
                 <div className="my-2">
                     <Button label="Adicionar Fazenda" icon={hover ? "pi pi-plus-circle" : "pi pi-plus"} severity="success" className=" mr-2" onClick={openNew} />
                     <Link href="/pages/editfazenda" passHref>
@@ -253,15 +234,15 @@ const Fazenda = () => {
                         />
                     </Link>
                 </div>
-            </>
+            </React.Fragment>
         );
     };
 
     const rightToolbarTemplate = () => {
         return (
-            <>
+            <React.Fragment>
                 <Button label="Adicionar Safra" icon="pi pi-plus" severity="info" onClick={openNewSafra} />
-            </>
+            </React.Fragment>
         );
     };
 
@@ -279,36 +260,43 @@ const Fazenda = () => {
         </>
     );
 
+    const filteredFazendas = fazendas?.filter(fazenda =>
+        (!selectedSafra || (fazenda.safra && fazenda.safra.id === selectedSafra.id)) &&
+        (!globalFilter || fazenda.nome.toLowerCase().includes(globalFilter.toLowerCase()))
+    );
+
     return (
         <div className="grid crud-demo">
             <div className="col-12">
                 <div className="card">
-                    <h2>Bem Vindo, {userName}</h2>
+                <h2>Bem Vindo, {userName}</h2>
                     <Toast ref={toast} />
                     <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
                     <div className="flex justify-content-between align-items-center mb-4">
                         <Dropdown
-                            id="safra"
                             value={selectedSafra}
-                            options={Array.isArray(safras) ? safras : []}
+                            options={safras}
                             onChange={onSelectSafraChange}
                             optionLabel="qual_safra"
                             placeholder="Selecione uma Safra"
+                            className="mr-2"
                         />
                     </div>
 
                     <div className="flex flex-column gap-3">
-                        {filteredFazendas.map((fazenda) => (
-                            <Card 
-                                key={fazenda.id}
-                                title={` ${fazenda.nome}`} 
-                                subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
-                                className="fazenda-card"
-                                style={{ cursor: 'pointer' }}
-                                onClick={() => handleFazendaClick(fazenda.id)}
-                            >
-                            </Card>
+                        {filteredFazendas?.map((fazenda) => (
+                            <Link key={fazenda.id} href={`/pages/setorList/${fazenda.id}`} legacyBehavior>
+                                <a style={{ textDecoration: 'none' }}>
+                                    <Card 
+                                        title={`Fazenda: ${fazenda.nome}`} 
+                                        subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
+                                        className="fazenda-card"
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                    </Card>
+                                </a>
+                            </Link>
                         ))}
                     </div>
 
@@ -347,7 +335,7 @@ const Fazenda = () => {
                             <Dropdown
                                 id="safra"
                                 value={fazenda.safra}
-                                options={Array.isArray(safras) ? safras : []}
+                                options={safras}
                                 onChange={(e: DropdownChangeEvent) => setFazenda(prevFazenda => ({ ...prevFazenda, safra: e.value }))}
                                 optionLabel="qual_safra"
                                 placeholder="Selecione uma Safra"

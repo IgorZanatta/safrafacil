@@ -17,7 +17,6 @@ import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
 import { TipoService } from '../../../../service/TipoService';
 import { SetorService } from '../../../../service/SetorService';
-import { useMemo } from 'react';
 
 const Tipo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -53,49 +52,35 @@ const Tipo = () => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [file, setFile] = useState<File | null>(null);
     const toast = useRef<Toast>(null);
-    const dt = useRef<DataTable<any>>(null); 
-    const tipoService = useMemo(() => new TipoService(), []);
-    const setorService = useMemo(() => new SetorService(), []);
+    const dt = useRef<DataTable<any>>(null);
+    const tipoService = new TipoService();
+    const setorService = new SetorService();
     const [setores, setSetores] = useState<Projeto.Setor[]>([]);
 
     useEffect(() => {
-        const usuarioId = localStorage.getItem('USER_ID');
-        if (!usuarioId) {
-            return;
-        }
-    
-        tipoService.listarPorUsuario(Number(usuarioId)).then((response) => {
-            setTipos(response.data);
-        }).catch((error) => {
-            console.log(error);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Erro!',
-                detail: 'Erro ao carregar tipos de atividade!'
+        if (!tipos) {
+            tipoService.listarTodos().then((response) => {
+                setTipos(response.data);
+            }).catch((error) => {
+                console.log(error);
             });
-        });
-    }, [tipoService]);
-    
-    useEffect(() => {
-        const usuarioId = localStorage.getItem('USER_ID');
-        if (!usuarioId) {
-            return;
         }
-    
+    }, [tipos]);
+
+    useEffect(() => {
         if (tipoDialog) {
-            setorService.listarPorUsuario(Number(usuarioId))
+            setorService.listarTodos()
                 .then((response) => setSetores(response.data))
                 .catch(error => {
                     console.log(error);
                     toast.current?.show({
-                        severity: 'error',
+                        severity: 'info',
                         summary: 'Erro!',
                         detail: 'Erro ao carregar a lista de setores!'
                     });
                 });
         }
-    }, [tipoDialog, setorService]);
-    
+    }, [tipoDialog]);
 
     const openNew = () => {
         setTipo(tipoVazio);

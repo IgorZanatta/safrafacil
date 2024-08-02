@@ -8,10 +8,9 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { Dropdown } from 'primereact/dropdown';
+import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafraService } from '../../../../service/SafraService';
-import { useMemo } from 'react';
 
 import { Projeto } from '@/types';
 
@@ -32,18 +31,18 @@ const Safra = () => {
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const safraService = useMemo(() => new SafraService(), []);
+    const safraService = new SafraService();
 
     useEffect(() => {
-        const userId = localStorage.getItem('USER_ID');
-        if (userId) {
-            safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+        if (!safras) {
+            safraService.listarTodos().then((response) => {
+                console.log(response.data);
                 setSafras(response.data);
             }).catch((error) => {
                 console.log(error);
             });
         }
-    }, [safraService]);
+    }, [safraService, safras]);
 
     const openNew = () => {
         setSafra(safraVazia);
@@ -66,31 +65,21 @@ const Safra = () => {
 
     const saveSafra = () => {
         setSubmitted(true);
-        const userId = localStorage.getItem('USER_ID');
-        if (userId) {
-            safra.usuario.id = parseInt(userId, 10);
-        } else {
-            console.error('User ID não encontrado no localStorage');
-            return;
-        }
-
+    
         if (safra.qual_safra) {
             if (!safra.id) {
                 safraService.inserir(safra)
                     .then((response) => {
                         setSafraDialog(false);
                         setSafra(safraVazia);
-                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                            setSafras(response.data);
-                        }).catch((error) => {
-                            console.log(error);
-                        });
+                        setSafras(null);
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Safra cadastrada com sucesso!'
                         });
                     }).catch((error) => {
+                        console.log(error);
                         const message = error.response?.data?.message || 'Erro ao salvar!';
                         toast.current?.show({
                             severity: 'error',
@@ -103,17 +92,14 @@ const Safra = () => {
                     .then((response) => {
                         setSafraDialog(false);
                         setSafra(safraVazia);
-                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                            setSafras(response.data);
-                        }).catch((error) => {
-                            console.log(error);
-                        });
+                        setSafras(null);
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Safra alterada com sucesso!'
                         });
                     }).catch((error) => {
+                        console.log(error);
                         const message = error.response?.data?.message || 'Erro ao alterar!';
                         toast.current?.show({
                             severity: 'error',
@@ -124,6 +110,7 @@ const Safra = () => {
             }
         }
     }
+    
 
     const editSafra = (safra: Projeto.Safra) => {
         setSafra({ ...safra });
@@ -138,16 +125,9 @@ const Safra = () => {
     const deleteSafra = () => {
         if (safra.id) {
             safraService.excluir(safra.id).then((response) => {
-                const userId = localStorage.getItem('USER_ID');
                 setSafra(safraVazia);
                 setDeleteSafraDialog(false);
-                if (userId) {
-                    safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                        setSafras(response.data);
-                    }).catch((error) => {
-                        console.log(error);
-                    });
-                }
+                setSafras(null);
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Sucesso!',
@@ -187,14 +167,7 @@ const Safra = () => {
                     }
                 }
             })).then(() => {
-                const userId = localStorage.getItem('USER_ID');
-                if (userId) {
-                    safraService.listarPorUsuario(parseInt(userId)).then((response) => {
-                        setSafras(response.data);
-                    }).catch((error) => {
-                        console.log(error);
-                    });
-                }
+                setSafras((prevSafras) => prevSafras?.filter(safra => !selectedSafras.includes(safra)) || []);
                 setSelectedSafras([]);
                 setDeleteSafrasDialog(false);
                 toast.current?.show({

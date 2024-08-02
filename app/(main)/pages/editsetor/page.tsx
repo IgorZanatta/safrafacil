@@ -8,7 +8,7 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SetorService } from '../../../../service/SetorService';
 import { Projeto } from '@/types';
 import { FazendaService } from '../../../../service/FazendaService';
@@ -41,15 +41,13 @@ const Setor = () => {
     const [tipoSetores, setTipoSetores] = useState<string[]>([]);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const setorService = useMemo(() => new SetorService(), []);
-    const fazendaService = useMemo(() => new FazendaService(), []);
-
+    const setorService = new SetorService();
+    const fazendaService = new FazendaService();
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
 
     useEffect(() => {
-        const userId = localStorage.getItem('USER_ID');
-        if (userId) {
-            setorService.listarPorUsuario(parseInt(userId)).then((response) => {
+        if (!setores) {
+            setorService.listarTodos().then((response) => {
                 const setoresData = response.data;
                 setSetores(setoresData);
 
@@ -60,23 +58,20 @@ const Setor = () => {
                 console.log(error);
             });
         }
-    }, [setorService]);
+    }, [setorService, setores]);
 
     useEffect(() => {
         if (setorDialog) {
-            const userId = localStorage.getItem('USER_ID');
-            if (userId) {
-                fazendaService.listarPorUsuario(parseInt(userId))
-                    .then((response) => setFazendas(response.data))
-                    .catch(error => {
-                        console.log(error);
-                        toast.current?.show({
-                            severity: 'info',
-                            summary: 'Erro!',
-                            detail: 'Erro ao carregar a lista de fazendas!'
-                        });
+            fazendaService.listarTodos()
+                .then((response) => setFazendas(response.data))
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de fazendas!'
                     });
-            }
+                });
         }
     }, [setorDialog, fazendaService]);
 
@@ -351,7 +346,7 @@ const Setor = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate}></Toolbar>
+                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
                     <DataTable
                         ref={dt}

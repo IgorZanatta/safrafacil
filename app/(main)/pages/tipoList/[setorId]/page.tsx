@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DataView, DataViewLayoutOptions } from 'primereact/dataview';
 import { Button } from 'primereact/button';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
@@ -60,8 +60,8 @@ const TipoListDemo = () => {
     const [selectedSortOrder, setSelectedSortOrder] = useState<string | null>(null); // Novo estado para o filtro de ordenação
     const [selectedSortField, setSelectedSortField] = useState<'gasto' | 'lucro' | null>(null); // Novo estado para o campo de ordenação
     const toast = useRef<Toast>(null);
-    const tipoService = useMemo(() => new TipoService(), []);
-    const setorService = useMemo(() => new SetorService(), []);
+    const tipoService = new TipoService();
+    const setorService = new SetorService();
     const [setorId, setSetorId] = useState<number | null>(null);
 
     const sortOptions = [
@@ -88,25 +88,23 @@ const TipoListDemo = () => {
             });
         }
         setGlobalFilterValue('');
-    }, [tipoService]);
+    }, []);
+    
 
     useEffect(() => {
         if (tipoDialog) {
-            const usuarioId = localStorage.getItem('USER_ID');
-            if (usuarioId) {
-                setorService.listarPorUsuario(Number(usuarioId))
-                    .then((response) => setSetores(response.data))
-                    .catch(error => {
-                        console.log(error);
-                        toast.current?.show({
-                            severity: 'info',
-                            summary: 'Erro!',
-                            detail: 'Erro ao carregar a lista de setores!'
-                        });
+            setorService.listarTodos()
+                .then((response) => setSetores(response.data))
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de setores!'
                     });
-            }
+                });
         }
-    }, [tipoDialog, setorService]);
+    }, [tipoDialog]);
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;
@@ -153,30 +151,27 @@ const TipoListDemo = () => {
     );
 
     const openNew = () => {
-        const usuarioId = localStorage.getItem('USER_ID');
-        if (usuarioId) {
-            setorService.listarPorUsuario(Number(usuarioId))
-                .then((response) => {
-                    setSetores(response.data);
-                    const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipo.setor;
-                    setTipo({
-                        ...tipoVazio,
-                        setor
-                    });
-                    setSubmitted(false);
-                    setFile(null);
-                    setExistingAnexos(null);
-                    setTipoDialog(true);
-                })
-                .catch(error => {
-                    console.log(error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de setores!'
-                    });
-                });
-        }
+        setorService.listarTodos()
+        .then((response) => {
+            setSetores(response.data);
+            const setor = response.data.find(setor => setor.id === setorId) || tipoVazio.setor;
+            setTipo({
+                ...tipoVazio,
+                setor
+            });
+            setSubmitted(false);
+            setFile(null);
+            setExistingAnexos(null);
+            setTipoDialog(true);
+        })
+        .catch(error => {
+            console.log(error);
+            toast.current?.show({
+                severity: 'info',
+                summary: 'Erro!',
+                detail: 'Erro ao carregar a lista de setores!'
+            });
+        });
     };
 
     const hideDialog = () => {
@@ -295,6 +290,7 @@ const TipoListDemo = () => {
         }));
     };
 
+
     const setorOptionTemplate = (option: Projeto.Setor) => {
         return (
             <div>
@@ -307,7 +303,7 @@ const TipoListDemo = () => {
         if (!data) {
             return;
         }
-
+    
         const openViewTipoDialog = () => {
             setTipo({
                 ...data,
@@ -316,7 +312,7 @@ const TipoListDemo = () => {
             setExistingAnexos(new Blob([data.anexos], { type: 'image/jpeg' }));
             setViewTipoDialog(true);
         };
-
+    
         if (layout === 'grid') {
             return (
                 <div className="col-12 lg:col-4" onClick={openViewTipoDialog}>
@@ -354,6 +350,8 @@ const TipoListDemo = () => {
             );
         }
     }
+    
+    
 
     const tipoDialogFooter = (
         <React.Fragment>

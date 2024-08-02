@@ -17,7 +17,7 @@ import { SetorService } from '../../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
-import { useMemo } from 'react';
+import { useRouter } from 'next/router';
 
 const TipoListDemo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -37,8 +37,7 @@ const TipoListDemo = () => {
                 id: 0,
                 nome: '',
                 tamanho: '',
-                safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
-                usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
+                safra: { id: 0, qual_safra: '' }
             }
         }
     };
@@ -58,9 +57,8 @@ const TipoListDemo = () => {
     const [file, setFile] = useState<File | null>(null);
     const [existingAnexos, setExistingAnexos] = useState<Blob | null>(null);
     const toast = useRef<Toast>(null);
-    const tipoService = useMemo(() => new TipoService(), []);
-    const setorService = useMemo(() => new SetorService(), []);
-
+    const tipoService = new TipoService();
+    const setorService = new SetorService();
 
     const sortOptions = [
         { label: 'Lucro Maior para Menor', value: '!lucro' },
@@ -72,9 +70,9 @@ const TipoListDemo = () => {
     useEffect(() => {
         const pathname = window.location.pathname;
         const dateParam = pathname.split('/').pop(); // Extrai a data da URL
+
         if (dateParam) {
-            const formattedDate = dateParam; // Defina `formattedDate` aqui como uma string
-            tipoService.listarPorData(formattedDate).then((response) => {
+            tipoService.listarPorData(dateParam).then((response) => {
                 setDataViewValue(response.data);
             }).catch((error) => {
                 console.error(error);
@@ -87,13 +85,11 @@ const TipoListDemo = () => {
             });
         }
         setGlobalFilterValue('');
-    }, [tipoService]);
+    }, []);
 
     useEffect(() => {
-        const usuarioId = localStorage.getItem('USER_ID'); // Obtém o ID do usuário logado
-
-        if (tipoDialog && usuarioId) {
-            setorService.listarPorUsuario(Number(usuarioId))
+        if (tipoDialog) {
+            setorService.listarTodos()
                 .then((response) => setSetores(response.data))
                 .catch(error => {
                     console.log(error);
@@ -104,7 +100,7 @@ const TipoListDemo = () => {
                     });
                 });
         }
-    }, [tipoDialog, setorService]);
+    }, [tipoDialog]);
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;
@@ -140,26 +136,11 @@ const TipoListDemo = () => {
     );
 
     const openNew = () => {
-        const usuarioId = localStorage.getItem('USER_ID');
-        if (usuarioId) {
-            setorService.listarPorUsuario(Number(usuarioId))
-                .then((response) => {
-                    setSetores(response.data);
-                    setTipo(tipoVazio);
-                    setSubmitted(false);
-                    setFile(null);
-                    setExistingAnexos(null);
-                    setTipoDialog(true);
-                })
-                .catch(error => {
-                    console.log(error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de setores!'
-                    });
-                });
-        }
+        setTipo(tipoVazio);
+        setSubmitted(false);
+        setFile(null);
+        setExistingAnexos(null);
+        setTipoDialog(true);
     };
 
     const hideDialog = () => {
@@ -210,22 +191,17 @@ const TipoListDemo = () => {
                 setTipo(tipoVazio);
                 setFile(null);
                 setExistingAnexos(null);
-                const pathname = window.location.pathname;
-                const dateParam = pathname.split('/').pop(); // Extrai a data da URL
-                if (dateParam) {
-                    const formattedDate = dateParam; // Defina `formattedDate` aqui como uma string
-                    tipoService.listarPorData(formattedDate).then((response) => {
-                        setDataViewValue(response.data);
-                    }).catch((error) => {
-                        console.error(error);
-                        toast.current?.show({
-                            severity: 'error',
-                            summary: 'Erro',
-                            detail: 'Erro ao carregar tipos',
-                            life: 3000
-                        });
+                tipoService.listarPorData(formattedDate).then((response) => {
+                    setDataViewValue(response.data);
+                }).catch((error) => {
+                    console.error(error);
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Erro',
+                        detail: 'Erro ao carregar tipos',
+                        life: 3000
                     });
-                }
+                });
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Sucesso!',
@@ -245,7 +221,6 @@ const TipoListDemo = () => {
             });
         }
     };
-
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
         const val = (e.target && e.target.value) || '';
 

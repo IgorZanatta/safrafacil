@@ -4,19 +4,25 @@ import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
+import { FileUpload } from 'primereact/fileupload';
+import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
+import { InputTextarea } from 'primereact/inputtextarea';
+import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
+import { Rating } from 'primereact/rating';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import React, { useEffect, useRef, useState } from 'react';
 import { SetorService } from '../../../../service/SetorService';
 import { Projeto } from '@/types';
 import { FazendaService } from '../../../../service/FazendaService';
-import { useMemo } from 'react';
+import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 
+
+/* @todo Used 'as any' for types here. Will fix in next version due to onSelectionChange event type issue. */
 const Setor = () => {
-    const setorVazio: Projeto.Setor = {
+    let setorVazio: Projeto.Setor = {
         id: 0,
         nome: '',
         tipo_setor: '',
@@ -25,7 +31,7 @@ const Setor = () => {
             id: 0,
             nome: '',
             tamanho: '',
-            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
+            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } }, 
             usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
         }
     };
@@ -38,38 +44,33 @@ const Setor = () => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-
-    const setorService = useMemo(() => new SetorService(), []);
-    const fazendaService = useMemo(() => new FazendaService(), []);
+    const setorService = new SetorService();
+    const fazendaService = new FazendaService();
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
 
     useEffect(() => {
-        const userId = localStorage.getItem('USER_ID');
-        if (userId) {
-            setorService.listarPorUsuario(parseInt(userId)).then((response) => {
+        if (!setores) {
+            setorService.listarTodos().then((response) => {
                 console.log(response.data);
-                setSetores(response.data);
+                setSetores(response.data);  // Atualiza o estado dos recursos
             }).catch((error) => {
                 console.log(error);
             });
         }
-    }, [setorService]);
-    
+    }, [setores]);
+
     useEffect(() => {
         if (setorDialog) {
-            const userId = localStorage.getItem('USER_ID');
-            if (userId) {
-                fazendaService.listarPorUsuario(parseInt(userId))
-                    .then((response) => setFazendas(response.data))
-                    .catch(error => {
-                        console.log(error);
-                        toast.current?.show({
-                            severity: 'info',
-                            summary: 'Erro!',
-                            detail: 'Erro ao carregar a lista de fazendas!'
-                        });
+            fazendaService.listarTodos()
+                .then((response) => setFazendas(response.data))
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de fazendas!'
                     });
-            }
+                });
         }
     }, [setorDialog, fazendaService]);
 
@@ -90,57 +91,50 @@ const Setor = () => {
         if (!setor.id) {
             setorService.inserir(setor)
                 .then((response) => {
-                    const userId = localStorage.getItem('USER_ID');
                     setSetorDialog(false);
                     setSetor(setorVazio);
-                    setorService.listarPorUsuario(parseInt(userId || '0')).then((response) => {
-                        setSetores(response.data);
-                    }).catch((error) => {
-                        console.log(error);
-                    });
+                    setSetores(null);
                     toast.current?.show({
                         severity: 'info',
                         summary: 'Sucesso!',
                         detail: 'Setor cadastrado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response?.data.message);
+                    console.log(error.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao salvar! ' + error.response?.data.message
+                        detail: 'Erro ao salvar!' + error.data.message
                     })
                 });
         } else {
             setorService.alterar(setor)
                 .then((response) => {
-                    const userId = localStorage.getItem('USER_ID');
                     setSetorDialog(false);
                     setSetor(setorVazio);
-                    setorService.listarPorUsuario(parseInt(userId || '0')).then((response) => {
-                        setSetores(response.data);
-                    }).catch((error) => {
-                        console.log(error);
-                    });
+                    setSetores(null);
                     toast.current?.show({
                         severity: 'info',
                         summary: 'Sucesso!',
                         detail: 'Setor alterado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response?.data.message);
+                    console.log(error.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao alterar! ' + error.response?.data.message
+                        detail: 'Erro ao alterar!' + error.data.message
                     })
                 })
         }
     }
 
+
     const exportCSV = () => {
         dt.current?.exportCSV();
     };
+
+    
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
         const val = (e.target && e.target.value) || '';
@@ -222,6 +216,7 @@ const Setor = () => {
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h3 className="m-0">Adicionar Setores</h3>
+            
         </div>
     );
 
@@ -238,8 +233,6 @@ const Setor = () => {
         setSetor(_setor);
     }
 
-    const filteredSetores = setores?.filter(setor => setor.fazenda.usuario.id === parseInt(localStorage.getItem('USER_ID') || '0'));
-
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -249,7 +242,7 @@ const Setor = () => {
 
                     <DataTable
                         ref={dt}
-                        value={filteredSetores}
+                        value={setores}
                         selection={selectedSetores}
                         onSelectionChange={(e) => setSelectedSetores(e.value as any)}
                         dataKey="id"
@@ -269,6 +262,7 @@ const Setor = () => {
                         <Column field="tipo_setor" header="Tipo Setor" sortable body={tipoSetorBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="tamanho" header="Tamanho" sortable body={tamanhoBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="fazenda" header="Fazenda" sortable body={fazendaBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
                     <Dialog visible={setorDialog} style={{ width: '450px' }} header="Detalhes do Setor" modal className="p-fluid" footer={setorDialogFooter} onHide={hideDialog}>
