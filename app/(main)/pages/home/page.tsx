@@ -234,7 +234,7 @@ const Fazenda = () => {
         if (id !== undefined) {
             localStorage.setItem('FAZENDA_ID', id.toString());
             console.log('FAZENDA_ID set in localStorage:', id); // Adicione este log
-            router.push(`/pages/setor_List`);
+            router.push(`/pages/setorList/${id}`);
         } else {
             console.error('ID da Fazenda é undefined');
         }
