@@ -12,6 +12,7 @@ import { Projeto } from '@/types';
 import { SetorService } from '../../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../../service/FazendaService';
+import { useRouter } from 'next/router';
 
 const SetorList: React.FC = () => {
     const setorVazio: Projeto.Setor = {
@@ -40,16 +41,16 @@ const SetorList: React.FC = () => {
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
     const [fazendaId, setFazendaId] = useState<number | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
-        const url = window.location.pathname;
-        const id = url.split('/').pop();
-        if (id) {
-            const fazendaId = parseInt(id, 10);
-            setFazendaId(fazendaId);
+        const { fazendaId } = router.query;
+        if (fazendaId) {
+            const id = parseInt(fazendaId as string, 10);
+            setFazendaId(id);
 
-            // Buscar a fazenda pelo ID e definir o nome da fazenda
-            fazendaService.buscarPorId(fazendaId).then((response) => {
+            // Fetch the fazenda by ID and set the fazenda name
+            fazendaService.buscarPorId(id).then((response) => {
                 console.log("Nome da fazenda obtido:", response.data.nome);
                 setSetor(prevSetor => ({
                     ...prevSetor,
@@ -59,18 +60,18 @@ const SetorList: React.FC = () => {
                 console.error("Erro ao buscar a fazenda:", error);
             });
 
-            // Listar setores por fazenda
-            fetchSetores(fazendaId);
+            // Fetch sectors by fazenda
+            fetchSetores(id);
         }
-    }, []);
+    }, [router.query]);
 
     const fetchSetores = (fazendaId: number) => {
         setorService.listarPorFazenda(fazendaId).then((response) => {
             const setoresData = response.data;
-            console.log("Setores obtidos:", setoresData); // Adicione este log
+            console.log("Setores obtidos:", setoresData);
             setSetores(setoresData);
 
-            // Extrair os tipos de setor únicos e converter para array de strings
+            // Extract unique sector types and convert to an array of strings
             const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
             setTipoSetores(tiposUnicos);
         }).catch((error) => {
@@ -229,7 +230,7 @@ const SetorList: React.FC = () => {
                                 onMouseEnter={() => setHover(true)}
                                 onMouseLeave={() => setHover(false)}
                             />
-                            <Link href={`/editsetor/${fazendaId}`} passHref>
+                            <Link href={`/setor/${fazendaId}`} passHref>
                                 <Button
                                     label="Editar Setor"
                                     icon="pi pi-pencil"
