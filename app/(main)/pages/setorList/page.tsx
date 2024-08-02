@@ -42,9 +42,11 @@ const SetorList: React.FC = () => {
 
     useEffect(() => {
         const fazendaId = localStorage.getItem('FAZENDA_ID');
+        console.log('ID da fazenda do localStorage:', fazendaId); // Adicione este log
+
         if (fazendaId) {
             const id = parseInt(fazendaId, 10);
-            console.log('ID da fazenda do localStorage:', id);
+            console.log('ID da fazenda após parse:', id); // Adicione este log
 
             fazendaService.buscarPorId(id).then((response: any) => {
                 console.log("Nome da fazenda obtido:", response.data.nome);
@@ -62,15 +64,34 @@ const SetorList: React.FC = () => {
         }
     }, []);
 
-    
+    const fetchSetores = (fazendaId: number) => {
+        console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId); // Adicione este log
+
+        setorService.listarPorFazenda(fazendaId).then((response: any) => {
+            console.log('Resposta da requisição listarPorFazenda:', response.data);
+            setSetores(response.data);
+
+            const tiposUnicos = Array.from(new Set(response.data.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
+            setTipoSetores(tiposUnicos);
+        }).catch((error: any) => {
+            console.error("Erro ao carregar setores:", error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Erro',
+                detail: 'Erro ao carregar setores',
+                life: 3000
+            });
+        });
+    };
+
     useEffect(() => {
         if (setorDialog) {
-            const userId = localStorage.getItem('USER_ID');
-            if (userId) {
-                fazendaService.listarPorUsuario(parseInt(userId))
-                    .then((response) => setFazendas(response.data))
-                    .catch(error => {
-                        console.log(error);
+            const usuarioId = localStorage.getItem('USER_ID');
+            if (usuarioId) {
+                fazendaService.listarPorUsuario(Number(usuarioId))
+                    .then((response: any) => setFazendas(response.data))
+                    .catch((error: any) => {
+                        console.log("Erro ao carregar fazendas:", error);
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Erro!',
@@ -81,25 +102,6 @@ const SetorList: React.FC = () => {
         }
     }, [setorDialog]);
 
-
-    const fetchSetores = (fazendaId: number) => {
-            console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
-            setorService.listarPorFazenda(fazendaId).then((response: any) => {
-                console.log('Resposta da requisição listarPorFazenda:', response.data);
-                setSetores(response.data);
-
-                const tiposUnicos = Array.from(new Set(response.data.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
-                setTipoSetores(tiposUnicos);
-            }).catch((error: any) => {
-                console.error("Erro ao carregar setores:", error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro',
-                    detail: 'Erro ao carregar setores',
-                    life: 3000
-                });
-            });
-        };
     const openNew = () => {
         const usuarioId = localStorage.getItem('USER_ID');
         const fazendaId = localStorage.getItem('FAZENDA_ID');
