@@ -66,12 +66,12 @@ const SetorList: React.FC = () => {
 
     useEffect(() => {
         if (setorDialog) {
-            const usuarioId = localStorage.getItem('USER_ID');
-            if (usuarioId) {
-                fazendaService.listarPorUsuario(Number(usuarioId))
-                    .then((response: any) => setFazendas(response.data))
-                    .catch((error: any) => {
-                        console.log("Erro ao carregar fazendas:", error);
+            const userId = localStorage.getItem('USER_ID');
+            if (userId) {
+                fazendaService.listarPorUsuario(parseInt(userId))
+                    .then((response) => setFazendas(response.data))
+                    .catch(error => {
+                        console.log(error);
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Erro!',
@@ -81,7 +81,8 @@ const SetorList: React.FC = () => {
             }
         }
     }, [setorDialog]);
-    
+
+
     const fetchSetores = (fazendaId: number) => {
             console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
             setorService.listarPorFazenda(fazendaId).then((response: any) => {
