@@ -61,6 +61,8 @@ const SetorList: React.FC = () => {
 
             // Listar setores por fazenda
             fetchSetores(id);
+        } else {
+            console.error("ID da fazenda não encontrado na URL");
         }
     }, [fazendaId]);
 
@@ -109,7 +111,7 @@ const SetorList: React.FC = () => {
             fazendaService.listarPorUsuario(Number(usuarioId))
                 .then((response) => {
                     setFazendas(response.data);
-                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
+                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === parseInt(fazendaId as string, 10)) || setorVazio.fazenda;
                     setSetor({
                         ...setorVazio,
                         fazenda
@@ -142,7 +144,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId as unknown as number); // Explicitly cast fazendaId
+                        fetchSetores(parseInt(fazendaId as string, 10)); // Explicitly cast fazendaId
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -163,7 +165,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId as unknown as number); // Explicitly cast fazendaId
+                        fetchSetores(parseInt(fazendaId as string, 10)); // Explicitly cast fazendaId
                     }
                     toast.current?.show({
                         severity: 'info',
