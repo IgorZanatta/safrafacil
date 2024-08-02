@@ -9,15 +9,13 @@ import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { FazendaService } from '../../../../service/FazendaService';
 import { SafraService } from '../../../../service/SafraService';
-import { useMemo } from 'react';
-
 import { Projeto } from '@/types';
 
 const Fazenda = () => {
-    let fazendaVazio: Projeto.Fazenda = {
+    const fazendaVazio: Projeto.Fazenda = {
         id: 0,
         nome: '',
         tamanho: '',
@@ -37,11 +35,10 @@ const Fazenda = () => {
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
     const fazendaService = useMemo(() => new FazendaService(), []);
     const safraService = useMemo(() => new SafraService(), []);
-    
+
     useEffect(() => {
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
-            const safraService = new SafraService();
             safraService.listarPorUsuario(parseInt(userId)).then((response) => {
                 setSafras(response.data);
             }).catch((error) => {
@@ -49,7 +46,6 @@ const Fazenda = () => {
             });
 
             fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
-                console.log(response.data);
                 setFazendas(response.data);
             }).catch((error) => {
                 console.log(error);
@@ -73,7 +69,7 @@ const Fazenda = () => {
         const userId = localStorage.getItem('USER_ID');
     
         if (userId) {
-            fazenda.usuario.id = parseInt(userId ?? "0", 10);
+            fazenda.usuario.id = parseInt(userId, 10);
         } else {
             console.error('User ID não encontrado no localStorage');
             return;
@@ -92,8 +88,7 @@ const Fazenda = () => {
                             detail: 'Fazenda cadastrada com sucesso!'
                         });
                         // Recarregar a lista de fazendas após a inserção
-                        const userId = localStorage.getItem('USER_ID');
-                        fazendaService.listarPorUsuario(parseInt(userId ?? "0")).then((response) => {
+                        fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
                             setFazendas(response.data);
                         }).catch((error) => {
                             console.log(error);
@@ -119,8 +114,7 @@ const Fazenda = () => {
                             detail: 'Fazenda alterada com sucesso!'
                         });
                         // Recarregar a lista de fazendas após a alteração
-                        const userId = localStorage.getItem('USER_ID');
-                        fazendaService.listarPorUsuario(parseInt(userId ?? "0")).then((response) => {
+                        fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
                             setFazendas(response.data);
                         }).catch((error) => {
                             console.log(error);
@@ -137,7 +131,6 @@ const Fazenda = () => {
             }
         }
     };
-    
 
     const exportCSV = () => {
         dt.current?.exportCSV();
@@ -167,10 +160,6 @@ const Fazenda = () => {
         );
     };
 
-    const rightToolbarTemplate = () => {
-        // Conteúdo para o lado direito da toolbar (se necessário)
-    };
-
     const nomeBodyTemplate = (rowData: Projeto.Fazenda) => {
         return (
             <>
@@ -196,10 +185,6 @@ const Fazenda = () => {
                 {rowData.safra.qual_safra}
             </>
         );
-    };
-
-    const actionBodyTemplate = (rowData: Projeto.Fazenda) => {
-        // Template para ações (editar/excluir) se necessário
     };
 
     const header = (
@@ -229,7 +214,7 @@ const Fazenda = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate} ></Toolbar>
+                    <Toolbar className="mb-4" left={leftToolbarTemplate}></Toolbar>
 
                     <div className="flex justify-content-between align-items-center mb-4">
                         <Dropdown
