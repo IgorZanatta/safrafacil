@@ -23,7 +23,7 @@ const SetorList: React.FC = () => {
             id: 0,
             nome: '',
             tamanho: '',
-            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } }, 
+            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
             usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
         }
     };
