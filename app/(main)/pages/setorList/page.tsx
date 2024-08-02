@@ -63,7 +63,6 @@ const SetorList: React.FC = () => {
     }, []);
 
     
-
     useEffect(() => {
         if (setorDialog) {
             const userId = localStorage.getItem('USER_ID');
