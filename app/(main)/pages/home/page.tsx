@@ -39,7 +39,7 @@ const Fazenda = () => {
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
     const [safraDialog, setSafraDialog] = useState(false);
     const [safra, setSafra] = useState<Projeto.Safra>(fazendaVazio.safra);
-    const router = useRouter(); // Inicializar o router
+    const router = useRouter();
 
     useEffect(() => {
         const userId = localStorage.getItem('USER_ID');
@@ -233,7 +233,7 @@ const Fazenda = () => {
     const handleFazendaClick = (id: number | undefined) => {
         if (id !== undefined) {
             localStorage.setItem('FAZENDA_ID', id.toString());
-            router.push('/pages/setorList');
+            router.push(`/pages/setorList`);
         } else {
             console.error('ID da Fazenda é undefined');
         }

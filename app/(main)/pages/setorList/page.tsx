@@ -41,12 +41,12 @@ const SetorList: React.FC = () => {
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
     const router = useRouter();
-    const { fazendaId } = router.query;
 
     useEffect(() => {
+        const fazendaId = localStorage.getItem('FAZENDA_ID');
         if (fazendaId) {
-            const id = parseInt(fazendaId as string, 10);
-            console.log('ID da fazenda da URL:', id);
+            const id = parseInt(fazendaId, 10);
+            console.log('ID da fazenda do localStorage:', id);
 
             fazendaService.buscarPorId(id).then((response: any) => {
                 console.log("Nome da fazenda obtido:", response.data.nome);
@@ -60,9 +60,9 @@ const SetorList: React.FC = () => {
 
             fetchSetores(id);
         } else {
-            console.error("ID da fazenda não encontrado na URL");
+            console.error("ID da fazenda não encontrado no localStorage");
         }
-    }, [fazendaId]);
+    }, []);
 
     const fetchSetores = (fazendaId: number) => {
         console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
@@ -103,11 +103,12 @@ const SetorList: React.FC = () => {
 
     const openNew = () => {
         const usuarioId = localStorage.getItem('USER_ID');
-        if (usuarioId) {
+        const fazendaId = localStorage.getItem('FAZENDA_ID');
+        if (usuarioId && fazendaId) {
             fazendaService.listarPorUsuario(Number(usuarioId))
                 .then((response) => {
                     setFazendas(response.data);
-                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === parseInt(fazendaId as string, 10)) || setorVazio.fazenda;
+                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === parseInt(fazendaId, 10)) || setorVazio.fazenda;
                     setSetor({
                         ...setorVazio,
                         fazenda
@@ -139,8 +140,9 @@ const SetorList: React.FC = () => {
                 .then((response) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
+                    const fazendaId = localStorage.getItem('FAZENDA_ID');
                     if (fazendaId !== null) {
-                        fetchSetores(parseInt(fazendaId as string, 10));
+                        fetchSetores(parseInt(fazendaId, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -160,8 +162,9 @@ const SetorList: React.FC = () => {
                 .then((response) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
+                    const fazendaId = localStorage.getItem('FAZENDA_ID');
                     if (fazendaId !== null) {
-                        fetchSetores(parseInt(fazendaId as string, 10));
+                        fetchSetores(parseInt(fazendaId, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
