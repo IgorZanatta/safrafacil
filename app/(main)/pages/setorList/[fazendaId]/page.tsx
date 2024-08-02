@@ -9,12 +9,12 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
-import { SetorService } from '../../../../service/SetorService';
+import { SetorService } from '../../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
-import { FazendaService } from '../../../../service/FazendaService';
+import { FazendaService } from '../../../../../service/FazendaService';
 
 const SetorList: React.FC = () => {
-    const setorVazio: Projeto.Setor = {
+    let setorVazio: Projeto.Setor = {
         id: 0,
         nome: '',
         tipo_setor: '',
@@ -23,7 +23,7 @@ const SetorList: React.FC = () => {
             id: 0,
             nome: '',
             tamanho: '',
-            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
+            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } }, 
             usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
         }
     };
@@ -39,17 +39,18 @@ const SetorList: React.FC = () => {
     const toast = useRef<Toast>(null);
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
+    const [fazendaId, setFazendaId] = useState<number | null>(null);
 
     useEffect(() => {
-        const fazendaId = localStorage.getItem('FAZENDA_ID');
-        console.log('ID da fazenda do localStorage:', fazendaId); // Adicione este log
+        const url = window.location.pathname;
+        const id = url.split('/').pop();
+        if (id) {
+            const fazendaId = parseInt(id, 10);
+            setFazendaId(fazendaId);
 
-        if (fazendaId) {
-            const id = parseInt(fazendaId, 10);
-            console.log('ID da fazenda após parse:', id); // Adicione este log
-
-            fazendaService.buscarPorId(id).then((response: any) => {
-                console.log("Nome da fazenda obtido:", response.data.nome);
+            // Buscar a fazenda pelo ID e definir o nome da fazenda
+            fazendaService.buscarPorId(fazendaId).then((response: any) => {
+                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
@@ -58,20 +59,18 @@ const SetorList: React.FC = () => {
                 console.error("Erro ao buscar a fazenda:", error);
             });
 
-            fetchSetores(id);
-        } else {
-            console.error("ID da fazenda não encontrado no localStorage");
+            // Listar setores por fazenda
+            fetchSetores(fazendaId);
         }
     }, []);
 
     const fetchSetores = (fazendaId: number) => {
-        console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId); // Adicione este log
-
         setorService.listarPorFazenda(fazendaId).then((response: any) => {
-            console.log('Resposta da requisição listarPorFazenda:', response.data);
-            setSetores(response.data);
+            const setoresData = response.data;
+            setSetores(setoresData);
 
-            const tiposUnicos = Array.from(new Set(response.data.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
+            // Extrair os tipos de setor únicos e converter para array de strings
+            const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
             setTipoSetores(tiposUnicos);
         }).catch((error: any) => {
             console.error("Erro ao carregar setores:", error);
@@ -86,39 +85,10 @@ const SetorList: React.FC = () => {
 
     useEffect(() => {
         if (setorDialog) {
-            const usuarioId = localStorage.getItem('USER_ID');
-            if (usuarioId) {
-                fazendaService.listarPorUsuario(Number(usuarioId))
-                    .then((response: any) => setFazendas(response.data))
-                    .catch((error: any) => {
-                        console.log("Erro ao carregar fazendas:", error);
-                        toast.current?.show({
-                            severity: 'info',
-                            summary: 'Erro!',
-                            detail: 'Erro ao carregar a lista de fazendas!'
-                        });
-                    });
-            }
-        }
-    }, [setorDialog]);
-
-    const openNew = () => {
-        const usuarioId = localStorage.getItem('USER_ID');
-        const fazendaId = localStorage.getItem('FAZENDA_ID');
-        if (usuarioId && fazendaId) {
-            fazendaService.listarPorUsuario(Number(usuarioId))
-                .then((response) => {
-                    setFazendas(response.data);
-                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === parseInt(fazendaId, 10)) || setorVazio.fazenda;
-                    setSetor({
-                        ...setorVazio,
-                        fazenda
-                    });
-                    setSubmitted(false);
-                    setSetorDialog(true);
-                })
-                .catch(error => {
-                    console.log(error);
+            fazendaService.listarTodos()
+                .then((response: any) => setFazendas(response.data))
+                .catch((error: any) => {
+                    console.log("Erro ao carregar fazendas:", error);
                     toast.current?.show({
                         severity: 'info',
                         summary: 'Erro!',
@@ -126,6 +96,29 @@ const SetorList: React.FC = () => {
                     });
                 });
         }
+    }, [setorDialog]);
+
+
+    const openNew = () => {
+        fazendaService.listarTodos()
+            .then((response) => {
+                setFazendas(response.data);
+                const fazenda = response.data.find(fazenda => fazenda.id === fazendaId) || setorVazio.fazenda;
+                setSetor({
+                    ...setorVazio,
+                    fazenda
+                });
+                setSubmitted(false);
+                setSetorDialog(true);
+            })
+            .catch(error => {
+                console.log(error);
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Erro!',
+                    detail: 'Erro ao carregar a lista de fazendas!'
+                });
+            });
     };
 
     const hideDialog = () => {
@@ -141,9 +134,8 @@ const SetorList: React.FC = () => {
                 .then((response) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
-                    const fazendaId = localStorage.getItem('FAZENDA_ID');
                     if (fazendaId !== null) {
-                        fetchSetores(parseInt(fazendaId, 10));
+                        fetchSetores(fazendaId);
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -151,11 +143,11 @@ const SetorList: React.FC = () => {
                         detail: 'Setor cadastrado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response?.data?.message);
+                    console.log(error.response.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao salvar! ' + error.response?.data?.message
+                        detail: 'Erro ao salvar! ' + error.response.data.message
                     })
                 });
         } else {
@@ -163,9 +155,8 @@ const SetorList: React.FC = () => {
                 .then((response) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
-                    const fazendaId = localStorage.getItem('FAZENDA_ID');
                     if (fazendaId !== null) {
-                        fetchSetores(parseInt(fazendaId, 10));
+                        fetchSetores(fazendaId);
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -173,11 +164,11 @@ const SetorList: React.FC = () => {
                         detail: 'Setor alterado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response?.data?.message);
+                    console.log(error.response.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao alterar! ' + error.response?.data?.message
+                        detail: 'Erro ao alterar! ' + error.response.data.message
                     })
                 })
         }
@@ -198,6 +189,7 @@ const SetorList: React.FC = () => {
             fazenda
         }));
     };
+    
 
     const fazendaOptionTemplate = (option: Projeto.Fazenda) => {
         return (

@@ -53,7 +53,7 @@ const Fazenda = () => {
                 console.log(error);
             });
         }
-    }, []);
+    }, [fazendaService]);
 
     const openNew = () => {
         setFazenda(fazendaVazio);
