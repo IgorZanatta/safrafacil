@@ -62,24 +62,7 @@ const SetorList: React.FC = () => {
         }
     }, []);
 
-    const fetchSetores = (fazendaId: number) => {
-        console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
-        setorService.listarPorFazenda(fazendaId).then((response: any) => {
-            console.log('Resposta da requisição listarPorFazenda:', response.data);
-            setSetores(response.data);
-
-            const tiposUnicos = Array.from(new Set(response.data.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
-            setTipoSetores(tiposUnicos);
-        }).catch((error: any) => {
-            console.error("Erro ao carregar setores:", error);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Erro',
-                detail: 'Erro ao carregar setores',
-                life: 3000
-            });
-        });
-    };
+    
 
     useEffect(() => {
         if (setorDialog) {
@@ -98,7 +81,25 @@ const SetorList: React.FC = () => {
             }
         }
     }, [setorDialog]);
+    
+    const fetchSetores = (fazendaId: number) => {
+            console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
+            setorService.listarPorFazenda(fazendaId).then((response: any) => {
+                console.log('Resposta da requisição listarPorFazenda:', response.data);
+                setSetores(response.data);
 
+                const tiposUnicos = Array.from(new Set(response.data.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
+                setTipoSetores(tiposUnicos);
+            }).catch((error: any) => {
+                console.error("Erro ao carregar setores:", error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Erro',
+                    detail: 'Erro ao carregar setores',
+                    life: 3000
+                });
+            });
+        };
     const openNew = () => {
         const usuarioId = localStorage.getItem('USER_ID');
         const fazendaId = localStorage.getItem('FAZENDA_ID');
