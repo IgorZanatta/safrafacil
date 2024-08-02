@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import React, { useEffect, useRef, useState } from 'react';
@@ -12,9 +13,11 @@ import { Projeto } from '@/types';
 import { SetorService } from '../../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../../service/FazendaService';
-import { useRouter } from 'next/router';
 
 const SetorList: React.FC = () => {
+    const router = useRouter();
+    const { fazendaId } = router.query;
+
     const setorVazio: Projeto.Setor = {
         id: 0,
         nome: '',
@@ -40,16 +43,12 @@ const SetorList: React.FC = () => {
     const toast = useRef<Toast>(null);
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
-    const [fazendaId, setFazendaId] = useState<number | null>(null);
-    const router = useRouter();
 
     useEffect(() => {
-        const { fazendaId } = router.query;
         if (fazendaId) {
             const id = parseInt(fazendaId as string, 10);
-            setFazendaId(id);
 
-            // Fetch the fazenda by ID and set the fazenda name
+            // Buscar a fazenda pelo ID e definir o nome da fazenda
             fazendaService.buscarPorId(id).then((response) => {
                 console.log("Nome da fazenda obtido:", response.data.nome);
                 setSetor(prevSetor => ({
@@ -60,18 +59,18 @@ const SetorList: React.FC = () => {
                 console.error("Erro ao buscar a fazenda:", error);
             });
 
-            // Fetch sectors by fazenda
+            // Listar setores por fazenda
             fetchSetores(id);
         }
-    }, [router.query]);
+    }, [fazendaId]);
 
-    const fetchSetores = (fazendaId: number) => {
-        setorService.listarPorFazenda(fazendaId).then((response) => {
+    const fetchSetores = (id: number) => {
+        setorService.listarPorFazenda(id).then((response) => {
             const setoresData = response.data;
             console.log("Setores obtidos:", setoresData);
             setSetores(setoresData);
 
-            // Extract unique sector types and convert to an array of strings
+            // Extrair os tipos de setor únicos e converter para array de strings
             const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
             setTipoSetores(tiposUnicos);
         }).catch((error) => {
@@ -104,7 +103,7 @@ const SetorList: React.FC = () => {
         fazendaService.listarTodos()
             .then((response) => {
                 setFazendas(response.data);
-                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
+                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === parseInt(fazendaId as string, 10)) || setorVazio.fazenda;
                 setSetor({
                     ...setorVazio,
                     fazenda
@@ -136,7 +135,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId);
+                        fetchSetores(parseInt(fazendaId as string, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -157,7 +156,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId);
+                        fetchSetores(parseInt(fazendaId as string, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
