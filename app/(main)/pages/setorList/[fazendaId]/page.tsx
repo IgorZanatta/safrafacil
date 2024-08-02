@@ -228,7 +228,7 @@ const SetorList: React.FC = () => {
                                 onMouseEnter={() => setHover(true)}
                                 onMouseLeave={() => setHover(false)}
                             />
-                            <Link href="/pages/setor" passHref>
+                            <Link href={`/setor/${fazendaId}`} passHref>
                                 <Button
                                     label="Editar Setor"
                                     icon="pi pi-pencil"
@@ -248,7 +248,7 @@ const SetorList: React.FC = () => {
                     </div>
                     <div className="flex flex-column gap-3">
                         {filteredSetores?.map((setor) => (
-                            <Link key={setor.id} href={`/pages/tipoList/${setor.id}`} legacyBehavior>
+                            <Link key={setor.id} href={`/tipoList/${setor.id}`} legacyBehavior>
                                 <a style={{ textDecoration: 'none' }}>
                                     <Card 
                                         title={`Setor: ${setor.nome}`} 
