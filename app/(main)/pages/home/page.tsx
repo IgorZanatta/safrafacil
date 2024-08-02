@@ -13,6 +13,7 @@ import { SafraService } from '../../../../service/SafraService';
 import { UsuarioService } from '../../../../service/UsuarioService';
 import { Projeto } from '@/types';
 import { Toolbar } from 'primereact/toolbar';
+import { useRouter } from 'next/router';
 
 const Fazenda = () => {
     const fazendaVazio: Projeto.Fazenda = {
@@ -38,6 +39,7 @@ const Fazenda = () => {
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
     const [safraDialog, setSafraDialog] = useState(false);
     const [safra, setSafra] = useState<Projeto.Safra>(fazendaVazio.safra);
+    const router = useRouter(); // Inicializar o router
 
     useEffect(() => {
         const userId = localStorage.getItem('USER_ID');
@@ -228,6 +230,15 @@ const Fazenda = () => {
         setFazenda(prevFazenda => ({ ...prevFazenda, safra: val }));
     };
 
+    const handleFazendaClick = (id: number | undefined) => {
+        if (id !== undefined) {
+            localStorage.setItem('FAZENDA_ID', id.toString());
+            router.push('/pages/setorList');
+        } else {
+            console.error('ID da Fazenda é undefined');
+        }
+    };
+
     const leftToolbarTemplate = () => {
         return (
             <>
@@ -288,17 +299,15 @@ const Fazenda = () => {
 
                     <div className="flex flex-column gap-3">
                         {filteredFazendas.map((fazenda) => (
-                            <Link key={fazenda.id} href={`/pages/setorList/${fazenda.id}`} legacyBehavior>
-                                <a style={{ textDecoration: 'none' }}>
-                                    <Card 
-                                        title={`Fazenda: ${fazenda.nome}`} 
-                                        subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
-                                        className="fazenda-card"
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                    </Card>
-                                </a>
-                            </Link>
+                            <Card 
+                                key={fazenda.id}
+                                title={`Fazenda: ${fazenda.nome}`} 
+                                subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
+                                className="fazenda-card"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleFazendaClick(fazenda.id)}
+                            >
+                            </Card>
                         ))}
                     </div>
 

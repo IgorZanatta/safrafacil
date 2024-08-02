@@ -9,9 +9,9 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
-import { SetorService } from '../../../../../service/SetorService';
+import { SetorService } from '../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
-import { FazendaService } from '../../../../../service/FazendaService';
+import { FazendaService } from '../../../../service/FazendaService';
 import { useRouter } from 'next/router';
 
 const SetorList: React.FC = () => {
