@@ -50,7 +50,7 @@ const SetorList: React.FC = () => {
 
             // Buscar a fazenda pelo ID e definir o nome da fazenda
             fazendaService.buscarPorId(fazendaId).then((response) => {
-                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
+                console.log("Nome da fazenda obtido:", response.data.nome);
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
@@ -67,6 +67,7 @@ const SetorList: React.FC = () => {
     const fetchSetores = (fazendaId: number) => {
         setorService.listarPorFazenda(fazendaId).then((response) => {
             const setoresData = response.data;
+            console.log("Setores obtidos:", setoresData); // Adicione este log
             setSetores(setoresData);
 
             // Extrair os tipos de setor únicos e converter para array de strings
