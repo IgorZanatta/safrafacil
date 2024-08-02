@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DataView, DataViewLayoutOptions } from 'primereact/dataview';
 import { Button } from 'primereact/button';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
@@ -60,8 +60,8 @@ const TipoListDemo = () => {
     const [selectedSortOrder, setSelectedSortOrder] = useState<string | null>(null); // Novo estado para o filtro de ordenação
     const [selectedSortField, setSelectedSortField] = useState<'gasto' | 'lucro' | null>(null); // Novo estado para o campo de ordenação
     const toast = useRef<Toast>(null);
-    const tipoService = new TipoService();
-    const setorService = new SetorService();
+    const tipoService = useMemo(() => new TipoService(), []);
+    const setorService = useMemo(() => new SetorService(), []);
     const [setorId, setSetorId] = useState<number | null>(null);
 
     const sortOptions = [
@@ -88,7 +88,7 @@ const TipoListDemo = () => {
             });
         }
         setGlobalFilterValue('');
-    }, []);
+    }, [tipoService]);
 
     useEffect(() => {
         if (tipoDialog) {
@@ -106,7 +106,7 @@ const TipoListDemo = () => {
                     });
             }
         }
-    }, [tipoDialog]);
+    }, [tipoDialog, setorService]);
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;

@@ -17,6 +17,7 @@ import { SetorService } from '../../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
+import { useMemo } from 'react';
 
 const TipoListDemo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -57,8 +58,9 @@ const TipoListDemo = () => {
     const [file, setFile] = useState<File | null>(null);
     const [existingAnexos, setExistingAnexos] = useState<Blob | null>(null);
     const toast = useRef<Toast>(null);
-    const tipoService = new TipoService();
-    const setorService = new SetorService();
+    const tipoService = useMemo(() => new TipoService(), []);
+    const setorService = useMemo(() => new SetorService(), []);
+
 
     const sortOptions = [
         { label: 'Lucro Maior para Menor', value: '!lucro' },
@@ -85,7 +87,7 @@ const TipoListDemo = () => {
             });
         }
         setGlobalFilterValue('');
-    }, []);
+    }, [tipoService]);
 
     useEffect(() => {
         const usuarioId = localStorage.getItem('USER_ID'); // Obtém o ID do usuário logado
@@ -102,7 +104,7 @@ const TipoListDemo = () => {
                     });
                 });
         }
-    }, [tipoDialog]);
+    }, [tipoDialog, setorService]);
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;

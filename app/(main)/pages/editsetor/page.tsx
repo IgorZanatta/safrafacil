@@ -8,7 +8,7 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { SetorService } from '../../../../service/SetorService';
 import { Projeto } from '@/types';
 import { FazendaService } from '../../../../service/FazendaService';
@@ -41,8 +41,9 @@ const Setor = () => {
     const [tipoSetores, setTipoSetores] = useState<string[]>([]);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const setorService = new SetorService();
-    const fazendaService = new FazendaService();
+    const setorService = useMemo(() => new SetorService(), []);
+    const fazendaService = useMemo(() => new FazendaService(), []);
+
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
 
     useEffect(() => {

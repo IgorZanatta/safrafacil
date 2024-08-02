@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
@@ -32,8 +32,8 @@ const Fazenda = () => {
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
-    const fazendaService = new FazendaService();
-    const safraService = new SafraService();
+    const fazendaService = useMemo(() => new FazendaService(), []);
+    const safraService = useMemo(() => new SafraService(), []);
     const [userName, setUserName] = useState('');
     const [safras, setSafras] = useState<Projeto.Safra[]>([]);
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);

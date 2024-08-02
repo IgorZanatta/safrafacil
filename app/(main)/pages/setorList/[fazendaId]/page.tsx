@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
@@ -41,8 +41,9 @@ const SetorList: React.FC = () => {
     const [tipoSetores, setTipoSetores] = useState<string[]>([]);
     const [selectedTipoSetor, setSelectedTipoSetor] = useState<string | null>(null);
     const toast = useRef<Toast>(null);
-    const setorService = new SetorService();
-    const fazendaService = new FazendaService();
+    const setorService = useMemo(() => new SetorService(), []);
+    const fazendaService = useMemo(() => new FazendaService(), []);
+
 
     useEffect(() => {
         if (fazendaId) {

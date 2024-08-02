@@ -55,8 +55,8 @@ const Tipo = () => {
     const [filterTipoAtividade, setFilterTipoAtividade] = useState<string | null>(null);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const tipoService = new TipoService();
-    const setorService = new SetorService();
+    const tipoService = useMemo(() => new TipoService(), []);
+    const setorService = useMemo(() => new SetorService(), []);
     const [setores, setSetores] = useState<Projeto.Setor[]>([]);
 
     useEffect(() => {
