@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import React, { useEffect, useRef, useState } from 'react';
@@ -14,7 +15,10 @@ import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../../service/FazendaService';
 
 const SetorList: React.FC = () => {
-    let setorVazio: Projeto.Setor = {
+    const router = useRouter();
+    const { fazendaId } = router.query;
+
+    const setorVazio: Projeto.Setor = {
         id: 0,
         nome: '',
         tipo_setor: '',
@@ -23,7 +27,7 @@ const SetorList: React.FC = () => {
             id: 0,
             nome: '',
             tamanho: '',
-            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } }, 
+            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
             usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
         }
     };
@@ -39,40 +43,37 @@ const SetorList: React.FC = () => {
     const toast = useRef<Toast>(null);
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
-    const [fazendaId, setFazendaId] = useState<number | null>(null);
 
     useEffect(() => {
-        const url = window.location.pathname;
-        const id = url.split('/').pop();
-        if (id) {
-            const fazendaId = parseInt(id, 10);
-            setFazendaId(fazendaId);
+        if (fazendaId) {
+            const id = parseInt(fazendaId as string, 10);
 
             // Buscar a fazenda pelo ID e definir o nome da fazenda
-            fazendaService.buscarPorId(fazendaId).then((response: any) => {
-                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
+            fazendaService.buscarPorId(id).then((response) => {
+                console.log("Nome da fazenda obtido:", response.data.nome);
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
                 }));
-            }).catch((error: any) => {
+            }).catch((error) => {
                 console.error("Erro ao buscar a fazenda:", error);
             });
 
             // Listar setores por fazenda
-            fetchSetores(fazendaId);
+            fetchSetores(id);
         }
-    }, []);
+    }, [fazendaId]);
 
-    const fetchSetores = (fazendaId: number) => {
-        setorService.listarPorFazenda(fazendaId).then((response: any) => {
+    const fetchSetores = (id: number) => {
+        setorService.listarPorFazenda(id).then((response) => {
             const setoresData = response.data;
+            console.log("Setores obtidos:", setoresData);
             setSetores(setoresData);
 
             // Extrair os tipos de setor únicos e converter para array de strings
             const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
             setTipoSetores(tiposUnicos);
-        }).catch((error: any) => {
+        }).catch((error) => {
             console.error("Erro ao carregar setores:", error);
             toast.current?.show({
                 severity: 'error',
@@ -86,8 +87,8 @@ const SetorList: React.FC = () => {
     useEffect(() => {
         if (setorDialog) {
             fazendaService.listarTodos()
-                .then((response: any) => setFazendas(response.data))
-                .catch((error: any) => {
+                .then((response) => setFazendas(response.data))
+                .catch((error) => {
                     console.log("Erro ao carregar fazendas:", error);
                     toast.current?.show({
                         severity: 'info',
@@ -98,12 +99,11 @@ const SetorList: React.FC = () => {
         }
     }, [setorDialog]);
 
-
     const openNew = () => {
         fazendaService.listarTodos()
             .then((response) => {
                 setFazendas(response.data);
-                const fazenda = response.data.find(fazenda => fazenda.id === fazendaId) || setorVazio.fazenda;
+                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === parseInt(fazendaId as string, 10)) || setorVazio.fazenda;
                 setSetor({
                     ...setorVazio,
                     fazenda
@@ -111,7 +111,7 @@ const SetorList: React.FC = () => {
                 setSubmitted(false);
                 setSetorDialog(true);
             })
-            .catch(error => {
+            .catch((error) => {
                 console.log(error);
                 toast.current?.show({
                     severity: 'info',
@@ -135,7 +135,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId);
+                        fetchSetores(parseInt(fazendaId as string, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -143,12 +143,12 @@ const SetorList: React.FC = () => {
                         detail: 'Setor cadastrado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response.data.message);
+                    console.log(error.response?.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao salvar! ' + error.response.data.message
-                    })
+                        detail: 'Erro ao salvar! ' + error.response?.data.message
+                    });
                 });
         } else {
             setorService.alterar(setor)
@@ -156,7 +156,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId);
+                        fetchSetores(parseInt(fazendaId as string, 10));
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -164,13 +164,13 @@ const SetorList: React.FC = () => {
                         detail: 'Setor alterado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response.data.message);
+                    console.log(error.response?.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao alterar! ' + error.response.data.message
-                    })
-                })
+                        detail: 'Erro ao alterar! ' + error.response?.data.message
+                    });
+                });
         }
     };
 
@@ -189,7 +189,6 @@ const SetorList: React.FC = () => {
             fazenda
         }));
     };
-    
 
     const fazendaOptionTemplate = (option: Projeto.Fazenda) => {
         return (
@@ -230,7 +229,7 @@ const SetorList: React.FC = () => {
                                 onMouseEnter={() => setHover(true)}
                                 onMouseLeave={() => setHover(false)}
                             />
-                            <Link href="/pages/setor" passHref>
+                            <Link href={`/setor/${fazendaId}`} passHref>
                                 <Button
                                     label="Editar Setor"
                                     icon="pi pi-pencil"
@@ -250,7 +249,7 @@ const SetorList: React.FC = () => {
                     </div>
                     <div className="flex flex-column gap-3">
                         {filteredSetores?.map((setor) => (
-                            <Link key={setor.id} href={`/pages/tipoList/${setor.id}`} legacyBehavior>
+                            <Link key={setor.id} href={`/tipoList/${setor.id}`} legacyBehavior>
                                 <a style={{ textDecoration: 'none' }}>
                                     <Card 
                                         title={`Setor: ${setor.nome}`} 
@@ -320,7 +319,7 @@ const SetorList: React.FC = () => {
                                 filter
                                 itemTemplate={fazendaOptionTemplate}
                             />
-                            {submitted && !setor.fazenda && <small className="p-invalid">Fazenda é obrigatória.</small>}
+                            {submitted && !setor.fazenda.id && <small className="p-invalid">Fazenda é obrigatória.</small>}
                         </div>
 
                     </Dialog>
