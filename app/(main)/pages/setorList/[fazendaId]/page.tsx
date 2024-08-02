@@ -12,6 +12,7 @@ import { Projeto } from '@/types';
 import { SetorService } from '../../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../../service/FazendaService';
+import { useRouter } from 'next/router';
 
 const SetorList: React.FC = () => {
     let setorVazio: Projeto.Setor = {
@@ -39,19 +40,16 @@ const SetorList: React.FC = () => {
     const toast = useRef<Toast>(null);
     const setorService = new SetorService();
     const fazendaService = new FazendaService();
-    const [fazendaId, setFazendaId] = useState<number | null>(null);
+    const router = useRouter();
+    const { fazendaId } = router.query;  // Use useRouter to extract the query parameter
 
     useEffect(() => {
-        const url = window.location.pathname;
-        const id = url.split('/').pop();
-        console.log('URL:', url);
-        console.log('ID da fazenda da URL:', id);
-        if (id) {
-            const fazendaId = parseInt(id, 10);
-            setFazendaId(fazendaId);
+        if (fazendaId) {
+            const id = parseInt(fazendaId as string, 10);
+            console.log('ID da fazenda da URL:', id);
 
             // Buscar a fazenda pelo ID e definir o nome da fazenda
-            fazendaService.buscarPorId(fazendaId).then((response: any) => {
+            fazendaService.buscarPorId(id).then((response: any) => {
                 console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
                 setSetor(prevSetor => ({
                     ...prevSetor,
@@ -62,9 +60,9 @@ const SetorList: React.FC = () => {
             });
 
             // Listar setores por fazenda
-            fetchSetores(fazendaId);
+            fetchSetores(id);
         }
-    }, []);
+    }, [fazendaId]);
 
     const fetchSetores = (fazendaId: number) => {
         console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
@@ -144,7 +142,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId);
+                        fetchSetores(fazendaId as unknown as number); // Explicitly cast fazendaId
                     }
                     toast.current?.show({
                         severity: 'info',
@@ -165,7 +163,7 @@ const SetorList: React.FC = () => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
-                        fetchSetores(fazendaId);
+                        fetchSetores(fazendaId as unknown as number); // Explicitly cast fazendaId
                     }
                     toast.current?.show({
                         severity: 'info',
