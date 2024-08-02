@@ -44,6 +44,8 @@ const SetorList: React.FC = () => {
     useEffect(() => {
         const url = window.location.pathname;
         const id = url.split('/').pop();
+        console.log('URL:', url);
+        console.log('ID da fazenda da URL:', id);
         if (id) {
             const fazendaId = parseInt(id, 10);
             setFazendaId(fazendaId);
@@ -65,7 +67,9 @@ const SetorList: React.FC = () => {
     }, []);
 
     const fetchSetores = (fazendaId: number) => {
+        console.log('Fazendo requisição para listar setores da fazenda ID:', fazendaId);
         setorService.listarPorFazenda(fazendaId).then((response: any) => {
+            console.log('Resposta da requisição listarPorFazenda:', response.data);
             const setoresData = response.data;
             setSetores(setoresData);
 
