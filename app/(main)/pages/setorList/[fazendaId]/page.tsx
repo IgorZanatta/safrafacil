@@ -50,7 +50,7 @@ const SetorList: React.FC = () => {
 
             // Buscar a fazenda pelo ID e definir o nome da fazenda
             fazendaService.buscarPorId(fazendaId).then((response) => {
-                console.log("Nome da fazenda obtido:", response.data.nome);
+                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
@@ -142,11 +142,11 @@ const SetorList: React.FC = () => {
                         detail: 'Setor cadastrado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response.data.message);
+                    console.log(error.response?.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao salvar! ' + error.response.data.message
+                        detail: 'Erro ao salvar! ' + error.response?.data.message
                     });
                 });
         } else {
@@ -163,11 +163,11 @@ const SetorList: React.FC = () => {
                         detail: 'Setor alterado com sucesso!'
                     });
                 }).catch((error) => {
-                    console.log(error.response.data.message);
+                    console.log(error.response?.data.message);
                     toast.current?.show({
                         severity: 'error',
                         summary: 'Erro!',
-                        detail: 'Erro ao alterar! ' + error.response.data.message
+                        detail: 'Erro ao alterar! ' + error.response?.data.message
                     });
                 });
         }
