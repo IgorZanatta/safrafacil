@@ -49,13 +49,13 @@ const SetorList: React.FC = () => {
             setFazendaId(fazendaId);
 
             // Buscar a fazenda pelo ID e definir o nome da fazenda
-            fazendaService.buscarPorId(fazendaId).then((response: any) => {
+            fazendaService.buscarPorId(fazendaId).then((response) => {
                 console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
                 setSetor(prevSetor => ({
                     ...prevSetor,
                     fazenda: response.data
                 }));
-            }).catch((error: any) => {
+            }).catch((error) => {
                 console.error("Erro ao buscar a fazenda:", error);
             });
 
@@ -65,14 +65,14 @@ const SetorList: React.FC = () => {
     }, []);
 
     const fetchSetores = (fazendaId: number) => {
-        setorService.listarPorFazenda(fazendaId).then((response: any) => {
+        setorService.listarPorFazenda(fazendaId).then((response) => {
             const setoresData = response.data;
             setSetores(setoresData);
 
             // Extrair os tipos de setor únicos e converter para array de strings
             const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
             setTipoSetores(tiposUnicos);
-        }).catch((error: any) => {
+        }).catch((error) => {
             console.error("Erro ao carregar setores:", error);
             toast.current?.show({
                 severity: 'error',
@@ -86,8 +86,8 @@ const SetorList: React.FC = () => {
     useEffect(() => {
         if (setorDialog) {
             fazendaService.listarTodos()
-                .then((response: any) => setFazendas(response.data))
-                .catch((error: any) => {
+                .then((response) => setFazendas(response.data))
+                .catch((error) => {
                     console.log("Erro ao carregar fazendas:", error);
                     toast.current?.show({
                         severity: 'info',
@@ -100,7 +100,7 @@ const SetorList: React.FC = () => {
 
     const openNew = () => {
         fazendaService.listarTodos()
-            .then((response: any) => {
+            .then((response) => {
                 setFazendas(response.data);
                 const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
                 setSetor({
@@ -110,7 +110,7 @@ const SetorList: React.FC = () => {
                 setSubmitted(false);
                 setSetorDialog(true);
             })
-            .catch((error: any) => {
+            .catch((error) => {
                 console.log(error);
                 toast.current?.show({
                     severity: 'info',
@@ -130,7 +130,7 @@ const SetorList: React.FC = () => {
 
         if (!setor.id) {
             setorService.inserir(setor)
-                .then((response: any) => {
+                .then((response) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
@@ -141,7 +141,7 @@ const SetorList: React.FC = () => {
                         summary: 'Sucesso!',
                         detail: 'Setor cadastrado com sucesso!'
                     });
-                }).catch((error: any) => {
+                }).catch((error) => {
                     console.log(error.response.data.message);
                     toast.current?.show({
                         severity: 'error',
@@ -151,7 +151,7 @@ const SetorList: React.FC = () => {
                 });
         } else {
             setorService.alterar(setor)
-                .then((response: any) => {
+                .then((response) => {
                     setSetorDialog(false);
                     setSetor(setorVazio);
                     if (fazendaId !== null) {
@@ -162,7 +162,7 @@ const SetorList: React.FC = () => {
                         summary: 'Sucesso!',
                         detail: 'Setor alterado com sucesso!'
                     });
-                }).catch((error: any) => {
+                }).catch((error) => {
                     console.log(error.response.data.message);
                     toast.current?.show({
                         severity: 'error',
@@ -318,7 +318,7 @@ const SetorList: React.FC = () => {
                                 filter
                                 itemTemplate={fazendaOptionTemplate}
                             />
-                            {submitted && !setor.fazenda && <small className="p-invalid">Fazenda é obrigatória.</small>}
+                            {submitted && !setor.fazenda.id && <small className="p-invalid">Fazenda é obrigatória.</small>}
                         </div>
 
                     </Dialog>
