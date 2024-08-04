@@ -9,9 +9,9 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
-import { SetorService } from '../../../../../service/SetorService';
+import { SetorService } from '../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
-import { FazendaService } from '../../../../../service/FazendaService';
+import { FazendaService } from '../../../../service/FazendaService';
 
 const SetorList: React.FC = () => {
     let setorVazio: Projeto.Setor = {
@@ -23,7 +23,7 @@ const SetorList: React.FC = () => {
             id: 0,
             nome: '',
             tamanho: '',
-            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } }, 
+            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
             usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
         }
     };
@@ -42,25 +42,25 @@ const SetorList: React.FC = () => {
     const [fazendaId, setFazendaId] = useState<number | null>(null);
 
     useEffect(() => {
-        const url = window.location.pathname;
-        const id = url.split('/').pop();
-        if (id) {
-            const fazendaId = parseInt(id, 10);
-            setFazendaId(fazendaId);
+        const storedFazendaId = localStorage.getItem('FAZENDA_ID');
+        if (storedFazendaId) {
+            const id = parseInt(storedFazendaId, 10);
+            if (!isNaN(id)) {
+                setFazendaId(id);
 
-            // Buscar a fazenda pelo ID e definir o nome da fazenda
-            fazendaService.buscarPorId(fazendaId).then((response: any) => {
-                console.log("Nome da fazenda obtido:", response.data.nome); // Adicione este log
-                setSetor(prevSetor => ({
-                    ...prevSetor,
-                    fazenda: response.data
-                }));
-            }).catch((error: any) => {
-                console.error("Erro ao buscar a fazenda:", error);
-            });
+                // Buscar a fazenda pelo ID e definir o nome da fazenda
+                fazendaService.buscarPorId(id).then((response: any) => {
+                    setSetor(prevSetor => ({
+                        ...prevSetor,
+                        fazenda: response.data
+                    }));
+                }).catch((error: any) => {
+                    console.error("Erro ao buscar a fazenda:", error);
+                });
 
-            // Listar setores por fazenda
-            fetchSetores(fazendaId);
+                // Listar setores por fazenda
+                fetchSetores(id);
+            }
         }
     }, []);
 
@@ -98,12 +98,11 @@ const SetorList: React.FC = () => {
         }
     }, [setorDialog]);
 
-
     const openNew = () => {
         fazendaService.listarTodos()
             .then((response) => {
                 setFazendas(response.data);
-                const fazenda = response.data.find(fazenda => fazenda.id === fazendaId) || setorVazio.fazenda;
+                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
                 setSetor({
                     ...setorVazio,
                     fazenda
@@ -190,6 +189,8 @@ const SetorList: React.FC = () => {
         }));
     };
     
+    
+    
 
     const fazendaOptionTemplate = (option: Projeto.Fazenda) => {
         return (
@@ -211,6 +212,17 @@ const SetorList: React.FC = () => {
     };
 
     const filteredSetores = setores?.filter(setor => !selectedTipoSetor || setor.tipo_setor === selectedTipoSetor);
+
+    const handleSetorClick = (setorId: number | undefined) => {
+        if (typeof setorId === 'number') {
+            localStorage.setItem('SETOR_ID', setorId.toString());
+            window.location.href = '/pages/tipo_list';
+        } else {
+            console.error("Setor ID é inválido");
+        }
+    };
+    
+    
 
     return (
         <div className="grid crud-demo">
@@ -250,17 +262,15 @@ const SetorList: React.FC = () => {
                     </div>
                     <div className="flex flex-column gap-3">
                         {filteredSetores?.map((setor) => (
-                            <Link key={setor.id} href={`/pages/tipoList/${setor.id}`} legacyBehavior>
-                                <a style={{ textDecoration: 'none' }}>
-                                    <Card 
-                                        title={`Setor: ${setor.nome}`} 
-                                        subTitle={`Fazenda: ${setor.fazenda.nome} | Safra: ${setor.fazenda.safra.qual_safra}`} 
-                                        className="setor-card"
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                    </Card>
-                                </a>
-                            </Link>
+                            <div key={setor.id} onClick={() => handleSetorClick(setor.id)}>
+                                <Card 
+                                    title={`Setor: ${setor.nome}`} 
+                                    subTitle={`Fazenda: ${setor.fazenda.nome} | Safra: ${setor.fazenda.safra.qual_safra}`} 
+                                    className="setor-card"
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                </Card>
+                            </div>
                         ))}
                     </div>
 
@@ -314,7 +324,7 @@ const SetorList: React.FC = () => {
                             <Dropdown
                                 value={setor.fazenda}
                                 options={fazendas}
-                                onChange={(e: DropdownChangeEvent) => onSelectFazendaChange(e.value)}
+                                onChange={(e: DropdownChangeEvent) => onSelectFazendaChange(e.value as Projeto.Fazenda)}
                                 optionLabel="nome"
                                 placeholder="Selecione uma fazenda..."
                                 filter

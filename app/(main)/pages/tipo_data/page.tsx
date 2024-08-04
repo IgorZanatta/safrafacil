@@ -5,7 +5,7 @@ import { DataView, DataViewLayoutOptions } from 'primereact/dataview';
 import { Button } from 'primereact/button';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
-import { TipoService } from '../../../../../service/TipoService';
+import { TipoService } from '../../../../service/TipoService';
 import Link from 'next/link';
 import type { Projeto } from '@/types';
 import { Dialog } from 'primereact/dialog';
@@ -13,11 +13,10 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { FileUpload } from 'primereact/fileupload';
 import { classNames } from 'primereact/utils';
 import { Dropdown as DropdownPrimeReact } from 'primereact/dropdown';
-import { SetorService } from '../../../../../service/SetorService';
+import { SetorService } from '../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
-import { useRouter } from 'next/router';
 
 const TipoListDemo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -37,7 +36,8 @@ const TipoListDemo = () => {
                 id: 0,
                 nome: '',
                 tamanho: '',
-                safra: { id: 0, qual_safra: '' }
+                safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
+                usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
             }
         }
     };
@@ -68,28 +68,48 @@ const TipoListDemo = () => {
     const tipoOptions = dataViewValue.map(tipo => ({ label: tipo.tipo_atividade, value: tipo.tipo_atividade }));
 
     useEffect(() => {
-        const pathname = window.location.pathname;
-        const dateParam = pathname.split('/').pop(); // Extrai a data da URL
+        const usuarioId = localStorage.getItem('USER_ID'); // Obtém o ID do usuário logado
+        const selectedDate = localStorage.getItem('SELECTED_DATE'); // Obtém a data selecionada
 
-        if (dateParam) {
-            tipoService.listarPorData(dateParam).then((response) => {
-                setDataViewValue(response.data);
+        if (usuarioId && selectedDate) {
+            tipoService.listarPorUsuario(Number(usuarioId)).then((responseUsuario) => {
+                const tiposUsuario = responseUsuario.data;
+                tipoService.listarPorData(selectedDate).then((responseData) => {
+                    const tiposData = responseData.data;
+                    const filteredTipos = tiposUsuario.filter((tipoUsuario: Projeto.Tipo) =>
+                        tiposData.some((tipoData: Projeto.Tipo) => tipoUsuario.id === tipoData.id)
+                    );
+                    console.log('Filtered Tipos:', filteredTipos); // Adicione logs para verificar os dados filtrados
+                    setDataViewValue(filteredTipos);
+                }).catch((error) => {
+                    console.error(error);
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Erro',
+                        detail: 'Erro ao carregar tipos por data',
+                        life: 3000
+                    });
+                });
             }).catch((error) => {
                 console.error(error);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Erro',
-                    detail: 'Erro ao carregar tipos',
+                    detail: 'Erro ao carregar tipos por usuário',
                     life: 3000
                 });
             });
+        } else {
+            console.warn('Usuario ID ou Data não encontrados no localStorage');
         }
         setGlobalFilterValue('');
     }, []);
 
     useEffect(() => {
-        if (tipoDialog) {
-            setorService.listarTodos()
+        const usuarioId = localStorage.getItem('USER_ID'); // Obtém o ID do usuário logado
+
+        if (tipoDialog && usuarioId) {
+            setorService.listarPorUsuario(Number(usuarioId))
                 .then((response) => setSetores(response.data))
                 .catch(error => {
                     console.log(error);
@@ -136,11 +156,26 @@ const TipoListDemo = () => {
     );
 
     const openNew = () => {
-        setTipo(tipoVazio);
-        setSubmitted(false);
-        setFile(null);
-        setExistingAnexos(null);
-        setTipoDialog(true);
+        const usuarioId = localStorage.getItem('USER_ID');
+        if (usuarioId) {
+            setorService.listarPorUsuario(Number(usuarioId))
+                .then((response) => {
+                    setSetores(response.data);
+                    setTipo(tipoVazio);
+                    setSubmitted(false);
+                    setFile(null);
+                    setExistingAnexos(null);
+                    setTipoDialog(true);
+                })
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de setores!'
+                    });
+                });
+        }
     };
 
     const hideDialog = () => {
@@ -191,17 +226,36 @@ const TipoListDemo = () => {
                 setTipo(tipoVazio);
                 setFile(null);
                 setExistingAnexos(null);
-                tipoService.listarPorData(formattedDate).then((response) => {
-                    setDataViewValue(response.data);
-                }).catch((error) => {
-                    console.error(error);
-                    toast.current?.show({
-                        severity: 'error',
-                        summary: 'Erro',
-                        detail: 'Erro ao carregar tipos',
-                        life: 3000
+                const usuarioId = localStorage.getItem('USER_ID'); // Obtém o ID do usuário logado
+                const selectedDate = localStorage.getItem('SELECTED_DATE'); // Obtém a data selecionada
+                if (selectedDate && usuarioId) {
+                    tipoService.listarPorUsuario(Number(usuarioId)).then((responseUsuario) => {
+                        const tiposUsuario = responseUsuario.data;
+                        tipoService.listarPorData(selectedDate).then((responseData) => {
+                            const tiposData = responseData.data;
+                            const filteredTipos = tiposUsuario.filter((tipoUsuario: Projeto.Tipo) =>
+                                tiposData.some((tipoData: Projeto.Tipo) => tipoUsuario.id === tipoData.id)
+                            );
+                            setDataViewValue(filteredTipos);
+                        }).catch((error) => {
+                            console.error(error);
+                            toast.current?.show({
+                                severity: 'error',
+                                summary: 'Erro',
+                                detail: 'Erro ao carregar tipos por data',
+                                life: 3000
+                            });
+                        });
+                    }).catch((error) => {
+                        console.error(error);
+                        toast.current?.show({
+                            severity: 'error',
+                            summary: 'Erro',
+                            detail: 'Erro ao carregar tipos por usuário',
+                            life: 3000
+                        });
                     });
-                });
+                }
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Sucesso!',
@@ -221,6 +275,7 @@ const TipoListDemo = () => {
             });
         }
     };
+
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
         const val = (e.target && e.target.value) || '';
 

@@ -30,7 +30,10 @@ const AppMenu = () => {
                         items: setoresData.map((setor: any) => ({
                             label: setor.nome,
                             icon: 'pi pi-fw pi-building',
-                            to: `/pages/tipoList/${setor.id}`
+                            command: () => {
+                                localStorage.setItem('SETOR_ID', setor.id);
+                                window.location.href = '/pages/tipo_list/';
+                            }
                         }))
                     };
                 }));

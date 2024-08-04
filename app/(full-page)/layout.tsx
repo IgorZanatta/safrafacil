@@ -7,7 +7,7 @@ interface SimpleLayoutProps {
 }
 
 export const metadata: Metadata = {
-    title: 'Safra facil',
+    title: 'Safra Facil',
     description: 'The ultimate collection of design-agnostic, flexible and accessible React UI Components.'
 };
 

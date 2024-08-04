@@ -11,7 +11,7 @@ import { classNames } from 'primereact/utils';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../service/FazendaService';
 import { SafraService } from '../../../../service/SafraService';
-import { UsuarioService } from '../../../../service/UsuarioService'; // Adicione esta linha
+import { UsuarioService } from '../../../../service/UsuarioService';
 
 import { Projeto } from '@/types';
 import { Toolbar } from 'primereact/toolbar';
@@ -58,6 +58,13 @@ const Fazenda = () => {
             }).catch((error) => {
                 console.log(error);
             });
+
+            // Carregar fazendas do usuário logado
+            fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
+                setFazendas(response.data);
+            }).catch((error) => {
+                console.log(error);
+            });
         }
 
         safraService.listarTodos().then((response) => {
@@ -66,15 +73,7 @@ const Fazenda = () => {
             console.log(error);
         });
 
-        if (!fazendas) {
-            fazendaService.listarTodos().then((response) => {
-                console.log(response.data);
-                setFazendas(response.data);
-            }).catch((error) => {
-                console.log(error);
-            });
-        }
-    }, [fazendas]);
+    }, []);
 
 
     const openNew = () => {
@@ -90,6 +89,14 @@ const Fazenda = () => {
 
     const saveFazenda = () => {
         setSubmitted(true);
+
+        const userId = localStorage.getItem('USER_ID');
+        if (userId) {
+            fazenda.usuario.id = parseInt(userId, 10); // Definir o ID do usuário no objeto fazenda
+        } else {
+            console.error('User ID não encontrado no localStorage');
+            return;
+        }
 
         if (fazenda.nome && fazenda.tamanho && fazenda.safra && fazenda.safra.id) {
             if (!fazenda.id) {
@@ -265,6 +272,16 @@ const Fazenda = () => {
         (!globalFilter || fazenda.nome.toLowerCase().includes(globalFilter.toLowerCase()))
     );
 
+    const handleFazendaClick = (fazendaId: number | undefined) => {
+        if (typeof fazendaId === 'number') {
+            localStorage.setItem('FAZENDA_ID', fazendaId.toString());
+            window.location.href = '/pages/setor_List';
+        } else {
+            console.error('Fazenda ID é inválido');
+        }
+    };
+    
+
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -286,17 +303,15 @@ const Fazenda = () => {
 
                     <div className="flex flex-column gap-3">
                         {filteredFazendas?.map((fazenda) => (
-                            <Link key={fazenda.id} href={`/pages/setorList/${fazenda.id}`} legacyBehavior>
-                                <a style={{ textDecoration: 'none' }}>
-                                    <Card 
-                                        title={`Fazenda: ${fazenda.nome}`} 
-                                        subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
-                                        className="fazenda-card"
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                    </Card>
-                                </a>
-                            </Link>
+                            <div key={fazenda.id} onClick={() => handleFazendaClick(fazenda.id)}>
+                                <Card 
+                                    title={`Fazenda: ${fazenda.nome}`} 
+                                    subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
+                                    className="fazenda-card"
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                </Card>
+                            </div>
                         ))}
                     </div>
 

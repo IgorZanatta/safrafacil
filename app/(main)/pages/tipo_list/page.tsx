@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -5,7 +6,7 @@ import { DataView, DataViewLayoutOptions } from 'primereact/dataview';
 import { Button } from 'primereact/button';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
-import { TipoService } from '../../../../../service/TipoService';
+import { TipoService } from '../../../../service/TipoService';
 import Link from 'next/link';
 import type { Projeto } from '@/types';
 import { Dialog } from 'primereact/dialog';
@@ -13,7 +14,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { FileUpload } from 'primereact/fileupload';
 import { classNames } from 'primereact/utils';
 import { Dropdown as DropdownPrimeReact } from 'primereact/dropdown';
-import { SetorService } from '../../../../../service/SetorService';
+import { SetorService } from '../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
@@ -51,14 +52,15 @@ const TipoListDemo = () => {
     const [sortField, setSortField] = useState('');
     const [tipoDialog, setTipoDialog] = useState(false);
     const [viewTipoDialog, setViewTipoDialog] = useState(false);
-    const [filterDialog, setFilterDialog] = useState(false); // Novo estado para o diálogo de filtro
+    const [filterDialog, setFilterDialog] = useState(false);
     const [tipo, setTipo] = useState<Projeto.Tipo>(tipoVazio);
     const [setores, setSetores] = useState<Projeto.Setor[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [existingAnexos, setExistingAnexos] = useState<Blob | null>(null);
-    const [selectedSortOrder, setSelectedSortOrder] = useState<string | null>(null); // Novo estado para o filtro de ordenação
-    const [selectedSortField, setSelectedSortField] = useState<'gasto' | 'lucro' | null>(null); // Novo estado para o campo de ordenação
+    const [selectedSortOrder, setSelectedSortOrder] = useState<string | null>(null);
+    const [selectedSortField, setSelectedSortField] = useState<'gasto' | 'lucro' | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const toast = useRef<Toast>(null);
     const tipoService = new TipoService();
     const setorService = new SetorService();
@@ -70,41 +72,25 @@ const TipoListDemo = () => {
     ];
 
     useEffect(() => {
-        const url = window.location.pathname;
-        const id = url.split('/').pop(); // Captura o ID do setor da URL
-        if (id) {
-            const setorId = parseInt(id, 10);
-            setSetorId(setorId);
-            tipoService.listarPorSetor(setorId).then((response) => {
-                setDataViewValue(response.data);
-            }).catch((error) => {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro',
-                    detail: 'Erro ao carregar tipos',
-                    life: 3000
-                });
-            });
-        }
-        setGlobalFilterValue('');
-    }, []);
-    
-
-    useEffect(() => {
-        if (tipoDialog) {
-            setorService.listarTodos()
-                .then((response) => setSetores(response.data))
-                .catch(error => {
-                    console.log(error);
+        const storedSetorId = localStorage.getItem('SETOR_ID');
+        if (storedSetorId) {
+            const id = parseInt(storedSetorId, 10);
+            if (!isNaN(id)) {
+                setSetorId(id);
+                tipoService.listarPorSetor(id).then((response) => {
+                    setDataViewValue(response.data);
+                }).catch((error) => {
+                    console.error(error);
                     toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de setores!'
+                        severity: 'error',
+                        summary: 'Erro',
+                        detail: 'Erro ao carregar tipos',
+                        life: 3000
                     });
                 });
+            }
         }
-    }, [tipoDialog]);
+    }, []);
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;
@@ -133,8 +119,20 @@ const TipoListDemo = () => {
             });
         }
 
+        if (selectedDate) {
+            filtered = filtered.filter(tipo => tipo.data && new Date(tipo.data).toLocaleDateString() === selectedDate.toLocaleDateString());
+        }
+
         setFilteredValue(filtered);
         setFilterDialog(false);
+    };
+
+    const clearFilters = () => {
+        setGlobalFilterValue('');
+        setSelectedSortField(null);
+        setSelectedSortOrder(null);
+        setSelectedDate(null);
+        setFilteredValue(null);
     };
 
     const getUniqueTipoAtividade = (tipos: Projeto.Tipo[]) => {
@@ -154,7 +152,7 @@ const TipoListDemo = () => {
         setorService.listarTodos()
         .then((response) => {
             setSetores(response.data);
-            const setor = response.data.find(setor => setor.id === setorId) || tipoVazio.setor;
+            const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipoVazio.setor;
             setTipo({
                 ...tipoVazio,
                 setor
@@ -290,7 +288,6 @@ const TipoListDemo = () => {
         }));
     };
 
-
     const setorOptionTemplate = (option: Projeto.Setor) => {
         return (
             <div>
@@ -303,7 +300,7 @@ const TipoListDemo = () => {
         if (!data) {
             return;
         }
-    
+
         const openViewTipoDialog = () => {
             setTipo({
                 ...data,
@@ -312,7 +309,7 @@ const TipoListDemo = () => {
             setExistingAnexos(new Blob([data.anexos], { type: 'image/jpeg' }));
             setViewTipoDialog(true);
         };
-    
+
         if (layout === 'grid') {
             return (
                 <div className="col-12 lg:col-4" onClick={openViewTipoDialog}>
@@ -350,8 +347,6 @@ const TipoListDemo = () => {
             );
         }
     }
-    
-    
 
     const tipoDialogFooter = (
         <React.Fragment>
@@ -369,6 +364,7 @@ const TipoListDemo = () => {
 
     const filterDialogFooter = (
         <React.Fragment>
+            <Button label="Limpar" icon="pi pi-times" text onClick={clearFilters} />
             <Button label="Cancelar" icon="pi pi-times" text onClick={hideFilterDialog} />
             <Button label="Aplicar" icon="pi pi-check" text onClick={applyFilters} />
         </React.Fragment>
@@ -584,6 +580,16 @@ const TipoListDemo = () => {
                         options={sortOptions}
                         onChange={(e) => setSelectedSortOrder(e.value)}
                         placeholder="Selecione a ordem"
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="filterDate">Data</label>
+                    <Calendar
+                        id="filterDate"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.value ?? null)}
+                        showIcon
+                        placeholder="Selecione a data"
                     />
                 </div>
             </Dialog>

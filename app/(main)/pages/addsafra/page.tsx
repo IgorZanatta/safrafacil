@@ -23,7 +23,6 @@ const Safra = () => {
     const [safras, setSafras] = useState<Projeto.Safra[] | null>(null);
     const [safraDialog, setSafraDialog] = useState(false);
     const [safra, setSafra] = useState<Projeto.Safra>(safraVazia);
-    const [selectedSafras, setSelectedSafras] = useState<Projeto.Safra[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
@@ -31,15 +30,15 @@ const Safra = () => {
     const safraService = new SafraService();
 
     useEffect(() => {
-        if (!safras) {
-            safraService.listarTodos().then((response) => {
-                console.log(response.data);
+        const userId = localStorage.getItem('USER_ID');
+        if (userId) {
+            safraService.listarPorUsuario(parseInt(userId)).then((response) => {
                 setSafras(response.data);
             }).catch((error) => {
                 console.log(error);
             });
         }
-    }, [safras]);
+    }, []);
 
     const openNew = () => {
         setSafra(safraVazia);
@@ -54,9 +53,6 @@ const Safra = () => {
 
     const saveSafra = () => {
         setSubmitted(true);
-        console.log('Saving Safra:', safra);
-
-        // Recuperar o ID do usuário do localStorage
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
             safra.usuario.id = parseInt(userId, 10); // Definir o ID do usuário no objeto safra
@@ -69,17 +65,19 @@ const Safra = () => {
             if (!safra.id) {
                 safraService.inserir(safra)
                     .then((response) => {
-                        console.log('Insert response:', response);
                         setSafraDialog(false);
                         setSafra(safraVazia);
-                        setSafras(null);
+                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setSafras(response.data);
+                        }).catch((error) => {
+                            console.log(error);
+                        });
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Safra cadastrada com sucesso!'
                         });
                     }).catch((error) => {
-                        console.log('Insert error:', error);
                         const message = error.response?.data?.message || 'Erro ao salvar!';
                         toast.current?.show({
                             severity: 'error',
@@ -90,17 +88,19 @@ const Safra = () => {
             } else {
                 safraService.alterar(safra)
                     .then((response) => {
-                        console.log('Update response:', response);
                         setSafraDialog(false);
                         setSafra(safraVazia);
-                        setSafras(null);
+                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setSafras(response.data);
+                        }).catch((error) => {
+                            console.log(error);
+                        });
                         toast.current?.show({
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Safra alterada com sucesso!'
                         });
                     }).catch((error) => {
-                        console.log('Update error:', error);
                         const message = error.response?.data?.message || 'Erro ao alterar!';
                         toast.current?.show({
                             severity: 'error',
@@ -124,23 +124,6 @@ const Safra = () => {
         }));
     };
 
-    const leftToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <div className="my-2">
-                    <Button label="Novo" icon="pi pi-plus" severity="success" className=" mr-2" onClick={openNew} />
-                </div>
-            </React.Fragment>
-        );
-    };
-
-    const rightToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-            </React.Fragment>
-        );
-    };
-
     const qualSafraBodyTemplate = (rowData: Projeto.Safra) => {
         return (
             <>
@@ -150,16 +133,13 @@ const Safra = () => {
         );
     };
 
-    const actionBodyTemplate = (rowData: Projeto.Safra) => {
-        return (
-            <>
-            </>
-        );
-    };
-
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h3 className="m-0">Adicionar Safras</h3>
+            <span className="block mt-2 md:mt-0 p-input-icon-left">
+                <i className="pi pi-search" />
+                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Search..." />
+            </span>
         </div>
     );
 
@@ -175,13 +155,11 @@ const Safra = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
+                    <Toolbar className="mb-4" left={<Button label="Novo" icon="pi pi-plus" severity="success" onClick={openNew} />} ></Toolbar>
 
                     <DataTable
                         ref={dt}
                         value={safras}
-                        selection={selectedSafras}
-                        onSelectionChange={(e) => setSelectedSafras(e.value as any)}
                         dataKey="id"
                         paginator
                         rows={10}
@@ -194,9 +172,7 @@ const Safra = () => {
                         header={header}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="qual_safra" header="Qual Safra" sortable body={qualSafraBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
                     <Dialog visible={safraDialog} style={{ width: '450px' }} header="Detalhes da Safra" modal className="p-fluid" footer={safraDialogFooter} onHide={hideDialog}>

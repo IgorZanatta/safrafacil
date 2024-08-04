@@ -25,11 +25,12 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         setCalendarVisible(!calendarVisible);
     };
 
-    const handleDateSelect = (e: CalendarSelectEvent) => { // Usamos CalendarSelectEvent
+    const handleDateSelect = (e: CalendarSelectEvent) => {
         const selectedDate = e.value as Date;
         if (selectedDate) {
             const formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
-            window.location.href = `/pages/tipolistdata/${formattedDate}`;
+            localStorage.setItem('SELECTED_DATE', formattedDate);
+            window.location.href = `/pages/tipo_data`;
         }
     };
 
@@ -79,6 +80,10 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
             {calendarVisible && (
                 <div className="layout-topbar-calendar" style={{ position: 'absolute', top: '100%', right: 0, zIndex: 1000 }}>
+                    <button type="button" className="p-link layout-topbar-button" onClick={toggleCalendar}>
+                        <i className="pi pi-times"></i>
+                        <span>Fechar</span>
+                    </button>
                     <Calendar inline onSelect={handleDateSelect} />
                 </div>
             )}
