@@ -48,10 +48,29 @@ const LoginPage = () => {
     }
 
     const efetuarLoginAdmin = () => {
-        setLogin('admin');
-        setSenha('admin');
-        efetuarLogin();
+        loginService.login('admin', 'admin')
+            .then((response) => {
+                const { token, userId } = response.data;
+                localStorage.setItem('TOKEN_APLICACAO_FRONTEND', token);
+                if (userId) {
+                    localStorage.setItem('USER_ID', userId.toString());
+                    setUserId(userId.toString());
+                } else {
+                    console.error('userId não encontrado na resposta do login');
+                }
+                if (toast.current) {
+                    toast.current.show({ severity: 'success', summary: 'Sucesso', detail: 'Login realizado com sucesso!', life: 3000 });
+                }
+                router.push('/pages/home');
+            })
+            .catch((error) => {
+                console.error('Login Error:', error);
+                if (toast.current) {
+                    toast.current.show({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas', life: 3000 });
+                }
+            });
     }
+
 
     return (
         <div className={classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' })}>
