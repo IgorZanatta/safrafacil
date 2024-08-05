@@ -261,7 +261,7 @@ const SetorList: React.FC = () => {
                                 onMouseEnter={() => setHover(true)}
                                 onMouseLeave={() => setHover(false)}
                             />
-                            <Link href="/pages/setor" passHref>
+                            <Link href="/pages/editsetor" passHref>
                                 <Button
                                     label="Editar Setor"
                                     icon="pi pi-pencil"
