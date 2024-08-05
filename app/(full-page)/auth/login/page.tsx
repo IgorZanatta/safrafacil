@@ -47,6 +47,12 @@ const LoginPage = () => {
             });
     }
 
+    const efetuarLoginAdmin = () => {
+        setLogin('admin');
+        setSenha('admin');
+        efetuarLogin();
+    }
+
     return (
         <div className={classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' })}>
             <Toast ref={toast} />
@@ -84,6 +90,11 @@ const LoginPage = () => {
                                 </Link>
                             </div>
                             <Button label="Entrar" className="w-full p-3 text-xl" onClick={efetuarLogin}></Button>
+                        </div>
+
+                        <div className="text-center mt-5">
+                            <span className="text-600 font-medium">Fazer login com a conta admin de teste</span>
+                            <Button label="Entrar como Admin" className="w-full p-3 text-xl mt-3" onClick={efetuarLoginAdmin}></Button>
                         </div>
                     </div>
                 </div>
