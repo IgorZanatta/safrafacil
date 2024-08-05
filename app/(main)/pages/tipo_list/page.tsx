@@ -73,7 +73,9 @@ const TipoListDemo = () => {
 
     useEffect(() => {
         const storedSetorId = localStorage.getItem('SETOR_ID');
-        if (storedSetorId) {
+        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
+    
+        if (storedSetorId && usuarioId) {
             const id = parseInt(storedSetorId, 10);
             if (!isNaN(id)) {
                 setSetorId(id);
@@ -89,8 +91,20 @@ const TipoListDemo = () => {
                     });
                 });
             }
+    
+            setorService.listarPorUsuario(Number(usuarioId))
+                .then((response) => setSetores(response.data))
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de setores!'
+                    });
+                });
         }
     }, []);
+    
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;
@@ -149,28 +163,33 @@ const TipoListDemo = () => {
     );
 
     const openNew = () => {
-        setorService.listarTodos()
-        .then((response) => {
-            setSetores(response.data);
-            const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipoVazio.setor;
-            setTipo({
-                ...tipoVazio,
-                setor
-            });
-            setSubmitted(false);
-            setFile(null);
-            setExistingAnexos(null);
-            setTipoDialog(true);
-        })
-        .catch(error => {
-            console.log(error);
-            toast.current?.show({
-                severity: 'info',
-                summary: 'Erro!',
-                detail: 'Erro ao carregar a lista de setores!'
-            });
-        });
+        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
+    
+        if (usuarioId) {
+            setorService.listarPorUsuario(Number(usuarioId))
+                .then((response) => {
+                    setSetores(response.data);
+                    const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipoVazio.setor;
+                    setTipo({
+                        ...tipoVazio,
+                        setor
+                    });
+                    setSubmitted(false);
+                    setFile(null);
+                    setExistingAnexos(null);
+                    setTipoDialog(true);
+                })
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de setores!'
+                    });
+                });
+        }
     };
+    
 
     const hideDialog = () => {
         setSubmitted(false);
