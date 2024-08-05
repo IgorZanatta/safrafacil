@@ -43,11 +43,13 @@ const SetorList: React.FC = () => {
 
     useEffect(() => {
         const storedFazendaId = localStorage.getItem('FAZENDA_ID');
-        if (storedFazendaId) {
+        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
+    
+        if (storedFazendaId && usuarioId) {
             const id = parseInt(storedFazendaId, 10);
             if (!isNaN(id)) {
                 setFazendaId(id);
-
+    
                 // Buscar a fazenda pelo ID e definir o nome da fazenda
                 fazendaService.buscarPorId(id).then((response: any) => {
                     setSetor(prevSetor => ({
@@ -57,13 +59,25 @@ const SetorList: React.FC = () => {
                 }).catch((error: any) => {
                     console.error("Erro ao buscar a fazenda:", error);
                 });
-
+    
                 // Listar setores por fazenda
                 fetchSetores(id);
             }
+    
+            // Listar fazendas por usuário
+            fazendaService.listarPorUsuario(Number(usuarioId))
+                .then((response) => setFazendas(response.data))
+                .catch((error) => {
+                    console.error("Erro ao carregar fazendas:", error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de fazendas!'
+                    });
+                });
         }
     }, []);
-
+    
     const fetchSetores = (fazendaId: number) => {
         setorService.listarPorFazenda(fazendaId).then((response: any) => {
             const setoresData = response.data;
@@ -99,27 +113,31 @@ const SetorList: React.FC = () => {
     }, [setorDialog]);
 
     const openNew = () => {
-        fazendaService.listarTodos()
-            .then((response) => {
-                setFazendas(response.data);
-                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
-                setSetor({
-                    ...setorVazio,
-                    fazenda
+        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
+    
+        if (usuarioId) {
+            fazendaService.listarPorUsuario(Number(usuarioId))
+                .then((response) => {
+                    setFazendas(response.data);
+                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
+                    setSetor({
+                        ...setorVazio,
+                        fazenda
+                    });
+                    setSubmitted(false);
+                    setSetorDialog(true);
+                })
+                .catch(error => {
+                    console.log(error);
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Erro!',
+                        detail: 'Erro ao carregar a lista de fazendas!'
+                    });
                 });
-                setSubmitted(false);
-                setSetorDialog(true);
-            })
-            .catch(error => {
-                console.log(error);
-                toast.current?.show({
-                    severity: 'info',
-                    summary: 'Erro!',
-                    detail: 'Erro ao carregar a lista de fazendas!'
-                });
-            });
+        }
     };
-
+    
     const hideDialog = () => {
         setSubmitted(false);
         setSetorDialog(false);
