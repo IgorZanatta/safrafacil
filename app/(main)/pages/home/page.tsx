@@ -65,13 +65,13 @@ const Fazenda = () => {
             }).catch((error) => {
                 console.log(error);
             });
-        }
 
-        safraService.listarTodos().then((response) => {
-            setSafras(response.data);
-        }).catch((error) => {
-            console.log(error);
-        });
+            safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                setSafras(response.data);
+            }).catch((error) => {
+                console.log(error);
+            });
+        }       
 
     }, []);
 
