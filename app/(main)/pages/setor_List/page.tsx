@@ -44,12 +44,12 @@ const SetorList: React.FC = () => {
     useEffect(() => {
         const storedFazendaId = localStorage.getItem('FAZENDA_ID');
         const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
-    
+        
         if (storedFazendaId && usuarioId) {
             const id = parseInt(storedFazendaId, 10);
             if (!isNaN(id)) {
                 setFazendaId(id);
-    
+        
                 // Buscar a fazenda pelo ID e definir o nome da fazenda
                 fazendaService.buscarPorId(id).then((response: any) => {
                     setSetor(prevSetor => ({
@@ -59,11 +59,11 @@ const SetorList: React.FC = () => {
                 }).catch((error: any) => {
                     console.error("Erro ao buscar a fazenda:", error);
                 });
-    
+        
                 // Listar setores por fazenda
                 fetchSetores(id);
             }
-    
+        
             // Listar fazendas por usuário
             fazendaService.listarPorUsuario(Number(usuarioId))
                 .then((response) => setFazendas(response.data))
@@ -77,6 +77,7 @@ const SetorList: React.FC = () => {
                 });
         }
     }, []);
+    
     
     const fetchSetores = (fazendaId: number) => {
         setorService.listarPorFazenda(fazendaId).then((response: any) => {
