@@ -11,11 +11,13 @@ import { classNames } from 'primereact/utils';
 import { LoginService } from '../../../../service/LoginService';
 import { Toast } from 'primereact/toast';
 import Link from 'next/link';
+import { Dialog } from 'primereact/dialog';
 import { useUser } from '../../../../layout/context/UserContext'; // Certifique-se de que o caminho está correto
 
 const LoginPage = () => {
     const [login, setLogin] = useState('');
     const [senha, setSenha] = useState('');
+    const [showLoading, setShowLoading] = useState(false);
     const { layoutConfig } = useContext(LayoutContext);
     const { setUserId } = useUser();
     const router = useRouter();
@@ -24,8 +26,10 @@ const LoginPage = () => {
     const loginService = useMemo(() => new LoginService(), []);
 
     const efetuarLogin = () => {
+        setShowLoading(true);
         loginService.login(login, senha)
             .then((response) => {
+                setShowLoading(false);
                 const { token, userId } = response.data;
                 localStorage.setItem('TOKEN_APLICACAO_FRONTEND', token);
                 if (userId) {
@@ -40,6 +44,7 @@ const LoginPage = () => {
                 router.push('/pages/home');
             })
             .catch((error) => {
+                setShowLoading(false);
                 console.error('Login Error:', error);
                 if (toast.current) {
                     toast.current.show({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas', life: 3000 });
@@ -48,8 +53,10 @@ const LoginPage = () => {
     }
 
     const efetuarLoginAdmin = () => {
+        setShowLoading(true);
         loginService.login('admin', 'admin')
             .then((response) => {
+                setShowLoading(false);
                 const { token, userId } = response.data;
                 localStorage.setItem('TOKEN_APLICACAO_FRONTEND', token);
                 if (userId) {
@@ -64,6 +71,7 @@ const LoginPage = () => {
                 router.push('/pages/home');
             })
             .catch((error) => {
+                setShowLoading(false);
                 console.error('Login Error:', error);
                 if (toast.current) {
                     toast.current.show({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas', life: 3000 });
@@ -71,10 +79,15 @@ const LoginPage = () => {
             });
     }
 
-
     return (
         <div className={classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' })}>
             <Toast ref={toast} />
+            <Dialog visible={showLoading} modal onHide={() => {}} closable={false}>
+                <div className="flex align-items-center justify-content-center flex-column">
+                    <img src="/loading.gif" alt="Loading" />
+                    <p>Aguarde enquanto conecta com o servidor...</p>
+                </div>
+            </Dialog>
             <div className="flex flex-column align-items-center justify-content-center">
                 <img src={`/layout/images/logo-${layoutConfig.colorScheme === 'light' ? 'dark' : 'white'}.svg`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
                 <div
