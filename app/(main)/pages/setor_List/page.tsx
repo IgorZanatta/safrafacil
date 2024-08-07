@@ -12,6 +12,7 @@ import { Projeto } from '@/types';
 import { SetorService } from '../../../../service/SetorService';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { FazendaService } from '../../../../service/FazendaService';
+import styles from '../../../../styles/SetorList.module.scss'; // Importa o CSS Module personalizado
 
 const SetorList: React.FC = () => {
     let setorVazio: Projeto.Setor = {
@@ -43,13 +44,11 @@ const SetorList: React.FC = () => {
 
     useEffect(() => {
         const storedFazendaId = localStorage.getItem('FAZENDA_ID');
-        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
-        
-        if (storedFazendaId && usuarioId) {
+        if (storedFazendaId) {
             const id = parseInt(storedFazendaId, 10);
             if (!isNaN(id)) {
                 setFazendaId(id);
-        
+
                 // Buscar a fazenda pelo ID e definir o nome da fazenda
                 fazendaService.buscarPorId(id).then((response: any) => {
                     setSetor(prevSetor => ({
@@ -59,26 +58,13 @@ const SetorList: React.FC = () => {
                 }).catch((error: any) => {
                     console.error("Erro ao buscar a fazenda:", error);
                 });
-        
+
                 // Listar setores por fazenda
                 fetchSetores(id);
             }
-        
-            // Listar fazendas por usuário
-            fazendaService.listarPorUsuario(Number(usuarioId))
-                .then((response) => setFazendas(response.data))
-                .catch((error) => {
-                    console.error("Erro ao carregar fazendas:", error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de fazendas!'
-                    });
-                });
         }
     }, []);
-    
-    
+
     const fetchSetores = (fazendaId: number) => {
         setorService.listarPorFazenda(fazendaId).then((response: any) => {
             const setoresData = response.data;
@@ -114,31 +100,27 @@ const SetorList: React.FC = () => {
     }, [setorDialog]);
 
     const openNew = () => {
-        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
-    
-        if (usuarioId) {
-            fazendaService.listarPorUsuario(Number(usuarioId))
-                .then((response) => {
-                    setFazendas(response.data);
-                    const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
-                    setSetor({
-                        ...setorVazio,
-                        fazenda
-                    });
-                    setSubmitted(false);
-                    setSetorDialog(true);
-                })
-                .catch(error => {
-                    console.log(error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de fazendas!'
-                    });
+        fazendaService.listarTodos()
+            .then((response) => {
+                setFazendas(response.data);
+                const fazenda = response.data.find((fazenda: Projeto.Fazenda) => fazenda.id === fazendaId) || setorVazio.fazenda;
+                setSetor({
+                    ...setorVazio,
+                    fazenda
                 });
-        }
+                setSubmitted(false);
+                setSetorDialog(true);
+            })
+            .catch(error => {
+                console.log(error);
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Erro!',
+                    detail: 'Erro ao carregar a lista de fazendas!'
+                });
+            });
     };
-    
+
     const hideDialog = () => {
         setSubmitted(false);
         setSetorDialog(false);
@@ -251,8 +233,8 @@ const SetorList: React.FC = () => {
                     {setores && setores.length > 0 && (
                         <h3>Setores da {setores[0].fazenda.nome} {setores[0].fazenda.safra.qual_safra} </h3>
                     )}
-                    <div className="flex justify-content-between align-items-center mb-4">
-                        <div className="flex gap-3">
+                    <div className={styles.toolbarContainer}>
+                        <div className={styles.buttonGroup}>
                             <Button 
                                 label="Adicionar Setor" 
                                 icon={hover ? "pi pi-plus-circle" : "pi pi-plus"} 
@@ -261,7 +243,7 @@ const SetorList: React.FC = () => {
                                 onMouseEnter={() => setHover(true)}
                                 onMouseLeave={() => setHover(false)}
                             />
-                            <Link href="/pages/editsetor" passHref>
+                            <Link href="/pages/setor" passHref>
                                 <Button
                                     label="Editar Setor"
                                     icon="pi pi-pencil"
@@ -269,7 +251,7 @@ const SetorList: React.FC = () => {
                                 />
                             </Link>
                         </div>
-                        <div className="flex align-items-center">
+                        <div className={styles.dropdownContainer}>
                             <Dropdown
                                 value={selectedTipoSetor}
                                 options={tipoSetores.map(tipo => ({ label: tipo, value: tipo }))}

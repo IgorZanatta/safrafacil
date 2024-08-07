@@ -1,0 +1,39 @@
+/* styles/SetorList.module.scss */
+
+.toolbarContainer {
+    display: flex;
+    justify-content: space-between; /* Alinha horizontalmente em desktops */
+    gap: 10px; /* Espaçamento entre botões */
+    align-items: center;
+}
+
+.buttonGroup {
+    display: flex;
+    flex-direction: row; /* Manter botões lado a lado */
+    gap: 10px; /* Espaçamento entre botões */
+}
+
+.dropdownContainer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Adiciona um espaço abaixo do filtro */
+
+}
+@media (max-width: 767px) {
+    .toolbarContainer {
+        flex-direction: column; /* Alinha os itens em coluna em dispositivos móveis */
+        justify-content: center; /* Centraliza horizontalmente */
+        gap: 10px; /* Espaçamento entre botões */
+    }
+    
+    .dropdownContainer {
+        width: 100%;
+        margin-bottom: 20px; /* Espaçamento maior em dispositivos móveis, se necessário */
+    }
+    
+    .buttonGroup {
+        display: flex;
+        flex-direction: row; /* Manter botões lado a lado */
+        gap: 10px; /* Espaçamento entre botões */
+    }
+}

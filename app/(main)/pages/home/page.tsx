@@ -15,6 +15,8 @@ import { UsuarioService } from '../../../../service/UsuarioService';
 
 import { Projeto } from '@/types';
 import { Toolbar } from 'primereact/toolbar';
+import 'primeflex/primeflex.css'; // Importa o PrimeFlex
+import styles from '../../../../styles/Fazenda.module.scss'; // Importa o CSS Module personalizado
 
 const Fazenda = () => {
     let fazendaVazio: Projeto.Fazenda = {
@@ -231,26 +233,24 @@ const Fazenda = () => {
     const leftToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <div className="my-2">
-                    <Button label="Adicionar Fazenda" icon={hover ? "pi pi-plus-circle" : "pi pi-plus"} severity="success" className=" mr-2" onClick={openNew} />
+                <div className={styles.toolbarContainer}>
+                    <Button label="Adicionar Fazenda" icon={hover ? "pi pi-plus-circle" : "pi pi-plus"} severity="success" className={styles.buttonSpacing} onClick={openNew} />
                     <Link href="/pages/editfazenda" passHref>
                         <Button
                             label="Editar Fazenda"
                             icon="pi pi-pencil"
                             severity="warning"
+                            className={styles.buttonSpacing}
                         />
                     </Link>
+                    <Button label="Adicionar Safra" icon="pi pi-plus" severity="info" className={styles.buttonSpacing} onClick={openNewSafra} />
                 </div>
             </React.Fragment>
         );
     };
 
     const rightToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <Button label="Adicionar Safra" icon="pi pi-plus" severity="info" onClick={openNewSafra} />
-            </React.Fragment>
-        );
+        return null;
     };
 
     const fazendaDialogFooter = (
@@ -286,10 +286,9 @@ const Fazenda = () => {
         <div className="grid crud-demo">
             <div className="col-12">
                 <div className="card">
-                <h2>Bem Vindo, {userName}</h2>
+                    <h2>Bem Vindo, {userName}</h2>
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-
+                    <Toolbar className={`${styles.toolbarContainer} mb-4`} left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
                     <div className="flex justify-content-between align-items-center mb-4">
                         <Dropdown
                             value={selectedSafra}

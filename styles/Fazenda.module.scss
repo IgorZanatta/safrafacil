@@ -1,0 +1,55 @@
+
+.toolbarContainer {
+    display: flex;
+    justify-content: space-between; /* Alinha horizontalmente em desktops */
+    gap: 10px; /* Espaçamento entre botões */
+}
+
+@media (max-width: 767px) {
+    .buttonGroup {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .buttonSpacing {
+        margin-bottom: 10px; /* Adiciona espaçamento entre botões */
+    }
+
+    .toolbarContainer {
+        display: flex;
+        justify-content: center; /* Centraliza horizontalmente */
+        align-items: center; /* Centraliza verticalmente */
+        flex-direction: column; /* Alinha os botões em coluna */
+        gap: 10px; /* Espaçamento entre botões */
+        height: 100%; /* Faz com que o contêiner ocupe toda a altura do quadrado cinza */
+    }
+    
+    .buttonSpacing {
+        margin-bottom: 10px; /* Adiciona espaçamento entre botões */
+    }
+    
+    .buttonGroupContainer {
+        display: flex;
+        justify-content: center; /* Centraliza horizontalmente */
+        align-items: center; /* Centraliza verticalmente */
+        height: 100%; /* Faz com que o contêiner ocupe toda a altura do quadrado cinza */
+    }
+    
+    /* Fazenda.module.scss */
+    .toolbar {
+        display: flex;
+        justify-content: center; /* Centraliza horizontalmente */
+        align-items: center; /* Centraliza verticalmente */
+        height: 100%; /* Faz com que o contêiner ocupe toda a altura */
+        flex-direction: column; /* Alinha os botões em coluna */
+        gap: 10px; /* Espaçamento entre botões */
+    }
+    
+    .buttonGroup {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centraliza os botões horizontalmente */
+        gap: 10px; /* Espaçamento entre botões */
+    }
+    
+}
