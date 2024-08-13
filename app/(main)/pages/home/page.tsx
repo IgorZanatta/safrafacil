@@ -36,7 +36,10 @@ const Fazenda = () => {
     const [fazendas, setFazendas] = useState<Projeto.Fazenda[] | null>(null);
     const [hover, setHover] = useState(false);
     const [fazendaDialog, setFazendaDialog] = useState(false);
+    const [safraDialog, setSafraDialog] = useState(false);
+    const [listarSafrasDialog, setListarSafrasDialog] = useState(false);
     const [fazenda, setFazenda] = useState<Projeto.Fazenda>(fazendaVazio);
+    const [safrasRelacionadas, setSafrasRelacionadas] = useState<Projeto.Safra[]>([]);
     const [selectedFazendas, setSelectedFazendas] = useState<Projeto.Fazenda[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
@@ -44,11 +47,8 @@ const Fazenda = () => {
     const fazendaService = new FazendaService();
     const safraService = new SafraService();
     const [userName, setUserName] = useState('');
-
     const [safras, setSafras] = useState<Projeto.Safra[]>([]);
     const [selectedSafra, setSelectedSafra] = useState<Projeto.Safra | null>(null);
-
-    const [safraDialog, setSafraDialog] = useState(false);
     const [safra, setSafra] = useState<Projeto.Safra>(safraVazia);
 
     useEffect(() => {
@@ -77,16 +77,28 @@ const Fazenda = () => {
 
     }, []);
 
-
-    const openNew = () => {
+    const openNewFazenda = () => {
         setFazenda(fazendaVazio);
         setSubmitted(false);
         setFazendaDialog(true);
     };
 
-    const hideDialog = () => {
+    const openNewSafra = () => {
+        setSafra(safraVazia);
         setSubmitted(false);
+        setSafraDialog(true);
+    };
+
+    const hideFazendaDialog = () => {
         setFazendaDialog(false);
+    };
+
+    const hideSafraDialog = () => {
+        setSafraDialog(false);
+    };
+
+    const hideListarSafrasDialog = () => {
+        setListarSafrasDialog(false);
     };
 
     const saveFazenda = () => {
@@ -144,17 +156,6 @@ const Fazenda = () => {
             }
         }
     }
-
-    const openNewSafra = () => {
-        setSafra(safraVazia);
-        setSubmitted(false);
-        setSafraDialog(true);
-    };
-
-    const hideSafraDialog = () => {
-        setSubmitted(false);
-        setSafraDialog(false);
-    };
 
     const saveSafra = () => {
         setSubmitted(true);
@@ -216,15 +217,6 @@ const Fazenda = () => {
         }
     }
 
-    const onInputChange = (e: { target: { value: any } }, name: string) => {
-        const val = (e.target && e.target.value) || '';
-
-        setFazenda((prevFazenda) => ({
-            ...prevFazenda,
-            [name]: name === 'safra' ? { id: val } : val,
-        }));
-    };
-
     const onSelectSafraChange = (e: DropdownChangeEvent) => {
         const val = e.value;
         setSelectedSafra(val);
@@ -234,7 +226,7 @@ const Fazenda = () => {
         return (
             <React.Fragment>
                 <div className={styles.toolbarContainer}>
-                    <Button label="Adicionar Fazenda" icon={hover ? "pi pi-plus-circle" : "pi pi-plus"} severity="success" className={styles.buttonSpacing} onClick={openNew} />
+                    <Button label="Adicionar Fazenda" icon={hover ? "pi pi-plus-circle" : "pi pi-plus"} severity="success" className={styles.buttonSpacing} onClick={openNewFazenda} />
                     <Link href="/pages/editfazenda" passHref>
                         <Button
                             label="Editar Fazenda"
@@ -255,7 +247,7 @@ const Fazenda = () => {
 
     const fazendaDialogFooter = (
         <>
-            <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
+            <Button label="Cancelar" icon="pi pi-times" text onClick={hideFazendaDialog} />
             <Button label="Salvar" icon="pi pi-check" text onClick={saveFazenda} />
         </>
     );
@@ -267,20 +259,48 @@ const Fazenda = () => {
         </>
     );
 
+    const listarSafrasDialogFooter = (
+        <>
+            <Button label="Fechar" icon="pi pi-times" text onClick={hideListarSafrasDialog} />
+        </>
+    );
+
     const filteredFazendas = fazendas?.filter(fazenda =>
         (!selectedSafra || (fazenda.safra && fazenda.safra.id === selectedSafra.id)) &&
         (!globalFilter || fazenda.nome.toLowerCase().includes(globalFilter.toLowerCase()))
     );
 
-    const handleFazendaClick = (fazendaId: number | undefined) => {
-        if (typeof fazendaId === 'number') {
-            localStorage.setItem('FAZENDA_ID', fazendaId.toString());
-            window.location.href = '/pages/setor_List';
-        } else {
-            console.error('Fazenda ID é inválido');
-        }
+    const agruparFazendasPorNome = (fazendas: Projeto.Fazenda[]) => {
+        const agrupadas = fazendas.reduce((acc, fazenda) => {
+            if (!acc[fazenda.nome]) {
+                acc[fazenda.nome] = [];
+            }
+            acc[fazenda.nome].push(fazenda);
+            return acc;
+        }, {} as Record<string, Projeto.Fazenda[]>);
+    
+        return Object.keys(agrupadas).map(nome => ({
+            nome,
+            fazendas: agrupadas[nome]
+        }));
     };
     
+    const fazendasAgrupadas = agruparFazendasPorNome(fazendas || []);
+    
+    const handleFazendaClick = (grupo: { nome: string, fazendas: Projeto.Fazenda[] }) => {
+        setSafrasRelacionadas(grupo.fazendas.map(f => f.safra));
+        setListarSafrasDialog(true);
+    };
+
+    // Adicionando a função onInputChange para lidar com mudanças nos campos de input
+    const onInputChange = (e: { target: { value: any } }, name: string) => {
+        const val = (e.target && e.target.value) || '';
+        setFazenda((prevFazenda) => ({
+            ...prevFazenda,
+            [name]: val,
+        }));
+    };
+
 
     return (
         <div className="grid crud-demo">
@@ -289,32 +309,20 @@ const Fazenda = () => {
                     <h2>Bem Vindo, {userName}</h2>
                     <Toast ref={toast} />
                     <Toolbar className={`${styles.toolbarContainer} mb-4`} left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-                    <div className="flex justify-content-between align-items-center mb-4">
-                        <Dropdown
-                            value={selectedSafra}
-                            options={safras}
-                            onChange={onSelectSafraChange}
-                            optionLabel="qual_safra"
-                            placeholder="Selecione uma Safra"
-                            className="mr-2"
-                        />
-                    </div>
-
                     <div className="flex flex-column gap-3">
-                        {filteredFazendas?.map((fazenda) => (
-                            <div key={fazenda.id} onClick={() => handleFazendaClick(fazenda.id)}>
+                        {fazendasAgrupadas.map((grupo) => (
+                            <div key={grupo.nome} onClick={() => handleFazendaClick(grupo)}>
                                 <Card 
-                                    title={`Fazenda: ${fazenda.nome}`} 
-                                    subTitle={`Tamanho: ${fazenda.tamanho} | Safra: ${fazenda.safra.qual_safra}`} 
+                                    title={`Fazenda: ${grupo.nome}`} 
+                                    subTitle={`Total de Safras: ${grupo.fazendas.length}`} 
                                     className="fazenda-card"
                                     style={{ cursor: 'pointer' }}
-                                >
-                                </Card>
+                                />
                             </div>
                         ))}
                     </div>
 
-                    <Dialog visible={fazendaDialog} style={{ width: '450px' }} header="Detalhes da Fazenda" modal className="p-fluid" footer={fazendaDialogFooter} onHide={hideDialog}>
+                    <Dialog visible={fazendaDialog} style={{ width: '450px' }} header="Detalhes da Fazenda" modal className="p-fluid" footer={fazendaDialogFooter} onHide={hideFazendaDialog}>
                         <div className="field">
                             <label htmlFor="nome">Nome</label>
                             <InputText
@@ -372,6 +380,25 @@ const Fazenda = () => {
                                 })}
                             />
                             {submitted && !safra.qual_safra && <small className="p-invalid">Qual Safra é Obrigatória.</small>}
+                        </div>
+                    </Dialog>
+
+                    <Dialog visible={listarSafrasDialog} style={{ width: '450px' }} header="Safras Relacionadas" modal className="p-fluid" footer={listarSafrasDialogFooter} onHide={hideListarSafrasDialog}>
+                        <div className="field">
+                            <label htmlFor="safra">Safras Pertencentes à Fazenda</label>
+                            <div className="flex flex-column gap-2">
+                                {safrasRelacionadas.map((safra, index) => (
+                                    <Button
+                                        key={index}
+                                        label={safra.qual_safra}
+                                        onClick={() => {
+                                            localStorage.setItem('FAZENDA_ID', String(safra.id)); // Salva o ID da safra no localStorage
+                                            window.location.href = `/pages/setor_List`;
+                                        }}
+                                        className="p-button-text p-button-plain"
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </Dialog>
                 </div>
