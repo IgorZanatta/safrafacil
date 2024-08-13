@@ -40,7 +40,7 @@ const Fazenda = () => {
     const [listarSafrasDialog, setListarSafrasDialog] = useState(false);
     const [fazenda, setFazenda] = useState<Projeto.Fazenda>(fazendaVazio);
     const [safrasRelacionadas, setSafrasRelacionadas] = useState<Projeto.Safra[]>([]);
-    const [selectedFazendas, setSelectedFazendas] = useState<Projeto.Fazenda[]>([]);
+    const [selectedFazenda, setSelectedFazenda] = useState<Projeto.Fazenda | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const toast = useRef<Toast>(null);
@@ -288,7 +288,8 @@ const Fazenda = () => {
     const fazendasAgrupadas = agruparFazendasPorNome(fazendas || []);
     
     const handleFazendaClick = (grupo: { nome: string, fazendas: Projeto.Fazenda[] }) => {
-        setSafrasRelacionadas(grupo.fazendas.map(f => f.safra));
+        const safrasComFazendaId = grupo.fazendas.map(f => ({ ...f.safra, fazendaId: f.id })); // Inclui o ID da fazenda junto com a safra
+        setSafrasRelacionadas(safrasComFazendaId);
         setListarSafrasDialog(true);
     };
 
@@ -301,6 +302,11 @@ const Fazenda = () => {
         }));
     };
 
+    const handleSafraClick = (safra: Projeto.Safra & { fazendaId: number }) => {
+        localStorage.setItem('FAZENDA_ID', String(safra.fazendaId)); // Salva o ID da fazenda no localStorage
+        localStorage.setItem('SAFRA_ID', String(safra.id)); // Salva o ID da safra no localStorage
+        window.location.href = `/pages/setor_List`;
+    }
 
     return (
         <div className="grid crud-demo">
@@ -391,10 +397,7 @@ const Fazenda = () => {
                                     <Button
                                         key={index}
                                         label={safra.qual_safra}
-                                        onClick={() => {
-                                            localStorage.setItem('FAZENDA_ID', String(safra.id)); // Salva o ID da safra no localStorage
-                                            window.location.href = `/pages/setor_List`;
-                                        }}
+                                        onClick={() => handleSafraClick(safra as Projeto.Safra & { fazendaId: number })} // Casting para informar ao TypeScript
                                         className="p-button-text p-button-plain"
                                     />
                                 ))}
