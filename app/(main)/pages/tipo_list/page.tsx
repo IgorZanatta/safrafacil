@@ -18,6 +18,7 @@ import { SetorService } from '../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
+import { gerarRelatorioTipoAtividade } from '@/service/PdfReportService';
 
 const TipoListDemo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -73,9 +74,7 @@ const TipoListDemo = () => {
 
     useEffect(() => {
         const storedSetorId = localStorage.getItem('SETOR_ID');
-        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
-    
-        if (storedSetorId && usuarioId) {
+        if (storedSetorId) {
             const id = parseInt(storedSetorId, 10);
             if (!isNaN(id)) {
                 setSetorId(id);
@@ -91,20 +90,8 @@ const TipoListDemo = () => {
                     });
                 });
             }
-    
-            setorService.listarPorUsuario(Number(usuarioId))
-                .then((response) => setSetores(response.data))
-                .catch(error => {
-                    console.log(error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de setores!'
-                    });
-                });
         }
     }, []);
-    
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;
@@ -163,33 +150,28 @@ const TipoListDemo = () => {
     );
 
     const openNew = () => {
-        const usuarioId = localStorage.getItem('USER_ID'); // Obter o ID do usuário logado
-    
-        if (usuarioId) {
-            setorService.listarPorUsuario(Number(usuarioId))
-                .then((response) => {
-                    setSetores(response.data);
-                    const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipoVazio.setor;
-                    setTipo({
-                        ...tipoVazio,
-                        setor
-                    });
-                    setSubmitted(false);
-                    setFile(null);
-                    setExistingAnexos(null);
-                    setTipoDialog(true);
-                })
-                .catch(error => {
-                    console.log(error);
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Erro!',
-                        detail: 'Erro ao carregar a lista de setores!'
-                    });
-                });
-        }
+        setorService.listarTodos()
+        .then((response) => {
+            setSetores(response.data);
+            const setor = response.data.find((setor: Projeto.Setor) => setor.id === setorId) || tipoVazio.setor;
+            setTipo({
+                ...tipoVazio,
+                setor
+            });
+            setSubmitted(false);
+            setFile(null);
+            setExistingAnexos(null);
+            setTipoDialog(true);
+        })
+        .catch(error => {
+            console.log(error);
+            toast.current?.show({
+                severity: 'info',
+                summary: 'Erro!',
+                detail: 'Erro ao carregar a lista de setores!'
+            });
+        });
     };
-    
 
     const hideDialog = () => {
         setSubmitted(false);
@@ -285,6 +267,7 @@ const TipoListDemo = () => {
         }));
     };
 
+    
     const onCalendarChange = (e: any) => {
         setTipo(prevTipo => ({
             ...prevTipo,
@@ -367,6 +350,24 @@ const TipoListDemo = () => {
         }
     }
 
+    const gerarRelatorioTipo = async (tipoId: number) => {
+        try {
+            await gerarRelatorioTipoAtividade(tipoId); // Função para gerar o PDF do tipo de atividade
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Sucesso!',
+                detail: 'Relatório PDF gerado com sucesso!',
+            });
+        } catch (error) {
+            console.error('Erro ao gerar o PDF:', error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Erro!',
+                detail: 'Erro ao gerar o relatório em PDF!',
+            });
+        }
+    };
+
     const tipoDialogFooter = (
         <React.Fragment>
             <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
@@ -376,6 +377,13 @@ const TipoListDemo = () => {
 
     const viewTipoDialogFooter = (
         <React.Fragment>
+            <Button
+                label="Gerar PDF"
+                icon="pi pi-file-pdf"
+                className="p-button-info p-button-sm" // `p-button-sm` é uma classe do PrimeReact para reduzir o tamanho
+                onClick={() => tipo.id && gerarRelatorioTipo(tipo.id)} // Verifica se tipo.id existe antes de chamar a função
+            />
+
             <Button label="Fechar" icon="pi pi-times" text onClick={hideViewDialog} />
             <Button label="Editar" icon="pi pi-pencil" text onClick={() => { setViewTipoDialog(false); setTipoDialog(true); }} />
         </React.Fragment>

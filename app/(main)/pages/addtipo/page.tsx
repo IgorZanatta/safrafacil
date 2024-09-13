@@ -17,6 +17,7 @@ import { classNames } from 'primereact/utils';
 import { Projeto } from '@/types';
 import { TipoService } from '../../../../service/TipoService';
 import { SetorService } from '../../../../service/SetorService';
+import { gerarRelatorioTipoAtividade } from '@/service/PdfReportService';
 
 const Tipo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -186,80 +187,6 @@ const Tipo = () => {
         setFile(event.files[0]);
     };
 
-    const editTipo = (tipo: Projeto.Tipo) => {
-        setTipo({ ...tipo, data: tipo.data ? new Date(tipo.data) : null });
-        setFile(null);
-        setTipoDialog(true);
-    };
-
-    const confirmDeleteTipo = (tipo: Projeto.Tipo) => {
-        setTipo(tipo);
-        setDeleteTipoDialog(true);
-    };
-
-    const deleteTipo = () => {
-        if (tipo.id) {
-            tipoService.excluir(tipo.id).then((response) => {
-                setTipo(tipoVazio);
-                setDeleteTipoDialog(false);
-                setTipos(null);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Sucesso!',
-                    detail: 'Tipo Excluído'
-                });
-            }).catch((error) => {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro!',
-                    detail: 'Erro ao Excluir Tipo'
-                });
-            });
-        }
-    };
-
-    const exportCSV = () => {
-        dt.current?.exportCSV();
-    };
-
-    const confirmDeleteSelected = () => {
-        setDeleteTiposDialog(true);
-    };
-
-    const deleteSelectedTipos = () => {
-        if (selectedTipos) {
-            Promise.all(selectedTipos.map(async (_tipo) => {
-                if (_tipo.id !== undefined) {
-                    try {
-                        await tipoService.excluir(_tipo.id);
-                    } catch (error) {
-                        console.error(`Erro ao excluir tipo com id ${_tipo.id}:`, error);
-                        toast.current?.show({
-                            severity: 'error',
-                            summary: 'Erro!',
-                            detail: `Erro ao excluir tipo com id ${_tipo.id}`
-                        });
-                    }
-                }
-            })).then(() => {
-                setTipos((prevTipos) => prevTipos?.filter(tipo => !selectedTipos.includes(tipo)) || []);
-                setSelectedTipos([]);
-                setDeleteTiposDialog(false);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Sucesso!',
-                    detail: 'Tipos excluídos'
-                });
-            }).catch((error) => {
-                console.error('Erro ao excluir tipos:', error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Erro!',
-                    detail: 'Erro ao excluir tipos'
-                });
-            });
-        }
-    };
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) => {
         const val = (e.target && e.target.value) || '';
@@ -303,9 +230,34 @@ const Tipo = () => {
     const rightToolbarTemplate = () => {
         return (
             <React.Fragment>
-                
+                <Button
+                    label="Gerar PDF"
+                    icon="pi pi-file-pdf"
+                    severity="info"
+                    className="p-button-info mr-2"
+                    onClick={generatePDF} // Função para gerar PDF
+                    disabled={selectedTipos.length === 0} // Desabilita o botão se nenhum tipo for selecionado
+                />
             </React.Fragment>
         );
+    };
+    
+    // Função para gerar PDF para os tipos de atividade selecionados
+    const generatePDF = async () => {
+        if (selectedTipos.length === 0) {
+            toast.current?.show({ severity: 'warn', summary: 'Atenção', detail: 'Nenhum tipo de atividade selecionado!' });
+            return;
+        }
+    
+        for (const tipo of selectedTipos) {
+            if (tipo.id) {
+                await gerarRelatorioTipoAtividade(tipo.id);
+            } else {
+                console.error("Tipo de atividade sem ID: ", tipo);
+            }
+        }
+    
+        toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'PDF gerado com sucesso!' });
     };
 
     const header = (

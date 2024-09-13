@@ -14,6 +14,7 @@ import { FazendaService } from '../../../../service/FazendaService';
 import { SafraService } from '../../../../service/SafraService';
 
 import { Projeto } from '@/types';
+import { gerarRelatorioFazenda } from '@/service/PdfReportService';
 
 const Fazenda = () => {
     let fazendaVazio: Projeto.Fazenda = {
@@ -166,7 +167,36 @@ const Fazenda = () => {
     };
 
     const rightToolbarTemplate = () => {
-        // Conteúdo para o lado direito da toolbar (se necessário)
+        return (
+            <React.Fragment>
+                {/* Botão para gerar PDF para as fazendas selecionadas */}
+                <Button
+                    label="Gerar PDF"
+                    icon="pi pi-file-pdf"
+                    severity="info"
+                    className="p-button-info mr-2"
+                    onClick={generatePDF} // Chama a função de geração de PDF
+                />
+            </React.Fragment>
+        );
+    };
+    
+    // Função para gerar PDF das fazendas selecionadas
+    const generatePDF = async () => {
+        if (selectedFazendas.length === 0) {
+            toast.current?.show({ severity: 'warn', summary: 'Atenção', detail: 'Nenhuma fazenda selecionada!' });
+            return;
+        }
+    
+        for (const fazenda of selectedFazendas) {
+            if (fazenda.id !== undefined && fazenda.id !== null) { // Verifica se o ID é válido
+                await gerarRelatorioFazenda(fazenda.id); // Função do PdfReportService.ts
+            } else {
+                console.error('Fazenda com ID indefinido:', fazenda); // Log para identificar possíveis problemas
+            }
+        }
+    
+        toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'PDF gerado com sucesso!' });
     };
 
     const nomeBodyTemplate = (rowData: Projeto.Fazenda) => {
@@ -227,7 +257,7 @@ const Fazenda = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" left={leftToolbarTemplate} ></Toolbar>
+                    <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate} ></Toolbar>
 
                     <div className="flex justify-content-between align-items-center mb-4">
                         <Dropdown

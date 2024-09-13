@@ -17,6 +17,7 @@ import { Projeto } from '@/types';
 import { Toolbar } from 'primereact/toolbar';
 import 'primeflex/primeflex.css'; // Importa o PrimeFlex
 import styles from '../../../../styles/Fazenda.module.scss'; // Importa o CSS Module personalizado
+import { gerarRelatorioFazenda } from '@/service/PdfReportService';
 
 const Fazenda = () => {
     let fazendaVazio: Projeto.Fazenda = {
@@ -103,7 +104,7 @@ const Fazenda = () => {
 
     const saveFazenda = () => {
         setSubmitted(true);
-
+    
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
             fazenda.usuario.id = parseInt(userId, 10); // Definir o ID do usuário no objeto fazenda
@@ -111,7 +112,7 @@ const Fazenda = () => {
             console.error('User ID não encontrado no localStorage');
             return;
         }
-
+    
         if (fazenda.nome && fazenda.tamanho && fazenda.safra && fazenda.safra.id) {
             if (!fazenda.id) {
                 fazendaService.inserir(fazenda)
@@ -123,6 +124,12 @@ const Fazenda = () => {
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Fazenda cadastrada com sucesso!'
+                        });
+                        // Recarregar a lista de fazendas
+                        fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setFazendas(response.data);
+                        }).catch((error) => {
+                            console.log(error);
                         });
                     }).catch((error) => {
                         console.log(error);
@@ -144,6 +151,12 @@ const Fazenda = () => {
                             summary: 'Sucesso!',
                             detail: 'Fazenda alterada com sucesso!'
                         });
+                        // Recarregar a lista de fazendas
+                        fazendaService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setFazendas(response.data);
+                        }).catch((error) => {
+                            console.log(error);
+                        });
                     }).catch((error) => {
                         console.log(error);
                         const message = error.response?.data?.message || 'Erro ao alterar!';
@@ -155,13 +168,12 @@ const Fazenda = () => {
                     });
             }
         }
-    }
-
+    };
+    
     const saveSafra = () => {
         setSubmitted(true);
         console.log('Saving Safra:', safra);
-
-        // Recuperar o ID do usuário do localStorage
+    
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
             safra.usuario.id = parseInt(userId, 10); // Definir o ID do usuário no objeto safra
@@ -169,7 +181,7 @@ const Fazenda = () => {
             console.error('User ID não encontrado no localStorage');
             return;
         }
-
+    
         if (safra.qual_safra) {
             if (!safra.id) {
                 safraService.inserir(safra)
@@ -182,6 +194,12 @@ const Fazenda = () => {
                             severity: 'info',
                             summary: 'Sucesso!',
                             detail: 'Safra cadastrada com sucesso!'
+                        });
+                        // Recarregar a lista de safras
+                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setSafras(response.data);
+                        }).catch((error) => {
+                            console.log(error);
                         });
                     }).catch((error) => {
                         console.log('Insert error:', error);
@@ -204,6 +222,12 @@ const Fazenda = () => {
                             summary: 'Sucesso!',
                             detail: 'Safra alterada com sucesso!'
                         });
+                        // Recarregar a lista de safras
+                        safraService.listarPorUsuario(parseInt(userId)).then((response) => {
+                            setSafras(response.data);
+                        }).catch((error) => {
+                            console.log(error);
+                        });
                     }).catch((error) => {
                         console.log('Update error:', error);
                         const message = error.response?.data?.message || 'Erro ao alterar!';
@@ -215,8 +239,8 @@ const Fazenda = () => {
                     });
             }
         }
-    }
-
+    };
+    
     const onSelectSafraChange = (e: DropdownChangeEvent) => {
         const val = e.value;
         setSelectedSafra(val);
@@ -308,6 +332,15 @@ const Fazenda = () => {
         window.location.href = `/pages/setor_List`;
     }
 
+    const handleGerarPDF = (safra: Projeto.Safra & { fazendaId: number }) => {
+        localStorage.setItem('FAZENDA_ID', String(safra.fazendaId)); // Salva o ID da fazenda no localStorage
+        localStorage.setItem('SAFRA_ID', String(safra.id)); // Salva o ID da safra no localStorage
+    
+        // Chama a função para gerar o relatório em PDF passando o ID da fazenda
+        gerarRelatorioFazenda(safra.fazendaId); // Supondo que o gerarRelatorioFazenda já está definido para lidar com isso
+    };
+    
+
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -390,20 +423,28 @@ const Fazenda = () => {
                     </Dialog>
 
                     <Dialog visible={listarSafrasDialog} style={{ width: '450px' }} header="Safras Relacionadas" modal className="p-fluid" footer={listarSafrasDialogFooter} onHide={hideListarSafrasDialog}>
-                        <div className="field">
-                            <label htmlFor="safra">Safras Pertencentes à Fazenda</label>
-                            <div className="flex flex-column gap-2">
-                                {safrasRelacionadas.map((safra, index) => (
-                                    <Button
-                                        key={index}
-                                        label={safra.qual_safra}
-                                        onClick={() => handleSafraClick(safra as Projeto.Safra & { fazendaId: number })} // Casting para informar ao TypeScript
-                                        className="p-button-text p-button-plain"
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </Dialog>
+    <div className="field">
+        <label htmlFor="safra">Safras Pertencentes à Fazenda</label>
+        <div className="flex flex-column gap-2">
+            {safrasRelacionadas.map((safra, index) => (
+                <div key={index} className="flex justify-content-between align-items-center">
+                    <Button
+                        label={safra.qual_safra}
+                        onClick={() => handleSafraClick(safra as Projeto.Safra & { fazendaId: number })}
+                        className="p-button-text p-button-plain"
+                    />
+                    <Button
+                        icon="pi pi-file-pdf"
+                        className="p-button-info p-button-outlined"
+                        onClick={() => handleGerarPDF(safra as Projeto.Safra & { fazendaId: number })} // Passa a safra para gerar o PDF
+                        tooltip="Gerar Relatório em PDF"
+                    />
+                </div>
+            ))}
+        </div>
+    </div>
+</Dialog>
+
                 </div>
             </div>
         </div>

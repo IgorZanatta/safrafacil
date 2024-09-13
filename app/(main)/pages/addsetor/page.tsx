@@ -13,6 +13,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SetorService } from '../../../../service/SetorService';
 import { Projeto } from '@/types';
 import { FazendaService } from '../../../../service/FazendaService';
+import { gerarRelatorioSetor } from '@/service/PdfReportService';
 
 const Setor = () => {
     const setorVazio: Projeto.Setor = {
@@ -162,9 +163,44 @@ const Setor = () => {
     const rightToolbarTemplate = () => {
         return (
             <React.Fragment>
+                <Button
+                    label="Gerar PDF"
+                    icon="pi pi-file-pdf"
+                    severity="info"
+                    className="p-button-info mr-2"
+                    onClick={generatePDF} // Função para gerar PDF
+                    disabled={selectedSetores.length === 0} // Desabilita o botão se nenhum setor for selecionado
+                />
             </React.Fragment>
         );
     };
+
+    const generatePDF = async () => {
+        if (selectedSetores.length === 0) {
+            toast.current?.show({ severity: 'warn', summary: 'Atenção', detail: 'Nenhum setor selecionado!' });
+            return;
+        }
+    
+        for (const setor of selectedSetores) {
+            // Verifica se o ID do setor está definido
+            if (setor.id) {
+                try {
+                    await gerarRelatorioSetor(setor.id); // Gera o relatório apenas se o ID do setor estiver presente
+                } catch (error) {
+                    console.error("Erro ao gerar relatório para o setor: ", setor.nome, error);
+                    toast.current?.show({ severity: 'error', summary: 'Erro', detail: `Erro ao gerar PDF para o setor ${setor.nome}.` });
+                }
+            } else {
+                console.error("Setor sem ID: ", setor);
+                toast.current?.show({ severity: 'error', summary: 'Erro', detail: `Setor ${setor.nome} está sem ID!` });
+            }
+        }
+    
+        toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'PDF gerado com sucesso!' });
+    };
+    
+    
+    
 
     const fazendaOptionTemplate = (option: Projeto.Fazenda) => {
         return (
