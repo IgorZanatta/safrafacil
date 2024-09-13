@@ -1,4 +1,4 @@
-import pdfMake from "pdfmake/build/pdfMake";
+import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import { FazendaService } from "./FazendaService";
 import { SetorService } from "./SetorService";
