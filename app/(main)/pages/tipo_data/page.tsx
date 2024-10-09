@@ -17,6 +17,24 @@ import { SetorService } from '../../../../service/SetorService';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Calendar } from 'primereact/calendar';
+import styles from '../tipo_list/page.module.css';
+
+
+// Função para analisar a string de data sem deslocamento de fuso horário
+function parseDateString(dateString: string | null): Date | null {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+// Função para formatar a data no formato dd/mm/aaaa
+function formatDateToDDMMYYYY(date: Date | null): string {
+    if (!date) return '';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
 const TipoListDemo = () => {
     const tipoVazio: Projeto.Tipo = {
@@ -154,6 +172,7 @@ const TipoListDemo = () => {
             <DataViewLayoutOptions layout={layout} onChange={(e) => setLayout(e.value)} />
         </div>
     );
+    
 
     const openNew = () => {
         const usuarioId = localStorage.getItem('USER_ID');
@@ -322,8 +341,9 @@ const TipoListDemo = () => {
         const openViewTipoDialog = () => {
             setTipo({
                 ...data,
-                data: data.data ? new Date(data.data) : null
+                data: data.data ? (typeof data.data === 'string' ? parseDateString(data.data) : data.data) : null
             });
+            
             setExistingAnexos(new Blob([data.anexos], { type: 'image/jpeg' }));
             setViewTipoDialog(true);
         };
@@ -335,7 +355,13 @@ const TipoListDemo = () => {
                         <img src={`data:image/jpeg;base64,${data.anexos}`} alt={data.tipo_atividade} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
                         <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
                             <div className="font-bold text-2xl">{data.tipo_atividade}</div>
-                            <div className="mb-2">{data.data ? new Date(data.data).toLocaleDateString() : ''}</div>
+                            <div className="mb-2">
+                                {data.data
+                                    ? formatDateToDDMMYYYY(
+                                        typeof data.data === 'string' ? parseDateString(data.data) : data.data
+                                    )
+                                    : ''}
+                            </div>
                             <div className="flex align-items-center">
                                 <i className="pi pi-tag mr-2"></i>
                                 <span className="font-semibold">{data.gasto}</span>
@@ -360,7 +386,13 @@ const TipoListDemo = () => {
                         <div className="flex flex-column align-items-center text-center mb-3">
                             <img src={`data:image/jpeg;base64,${data.anexos}`} alt={data.tipo_atividade} className="w-9 shadow-2 my-3 mx-0" />
                             <div className="text-2xl font-bold">{data.tipo_atividade}</div>
-                            <div className="mb-3">{data.data ? new Date(data.data).toLocaleDateString() : ''}</div>
+                            <div className="mb-3">
+                                {data.data
+                                    ? formatDateToDDMMYYYY(
+                                        typeof data.data === 'string' ? parseDateString(data.data) : data.data
+                                    )
+                                    : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -435,6 +467,7 @@ const TipoListDemo = () => {
                         onChange={onCalendarChange}
                         required
                         showIcon
+                        dateFormat="dd/mm/yy"
                         className={classNames({
                             'p-invalid': submitted && !tipo.data
                         })}
@@ -510,58 +543,34 @@ const TipoListDemo = () => {
             </Dialog>
 
             <Dialog visible={viewTipoDialog} style={{ width: '450px' }} header="Visualizar Tipo" modal className="p-fluid" footer={viewTipoDialogFooter} onHide={hideViewDialog}>
-                <div className="field">
-                    <label htmlFor="tipo_atividade">Tipo de Atividade</label>
-                    <InputText
-                        id="tipo_atividade"
-                        value={tipo.tipo_atividade}
-                        readOnly
-                    />
+            <div className={styles.viewField}>
+                <label className={styles.viewLabel}>Tipo de Atividade:</label>
+                <div className={styles.viewValue}>{tipo.tipo_atividade}</div>
                 </div>
 
-                <div className="field">
-                    <label htmlFor="data">Data</label>
-                    <InputText
-                        id="data"
-                        value={tipo.data ? tipo.data.toISOString().split('T')[0] : ''}
-                        readOnly
-                    />
+                <div className={styles.viewField}>
+                <label className={styles.viewLabel}>Data:</label>
+                <div className={styles.viewValue}>{tipo.data ? formatDateToDDMMYYYY(tipo.data) : ''}</div>
                 </div>
 
-                <div className="field">
-                    <label htmlFor="gasto">Gasto</label>
-                    <InputText
-                        id="gasto"
-                        value={tipo.gasto}
-                        readOnly
-                    />
+                <div className={styles.viewField}>
+                <label className={styles.viewLabel}>Gasto:</label>
+                <div className={`${styles.viewValue} ${styles.negativeValue}`}>R$ {parseFloat(tipo.gasto).toFixed(2)}</div>
                 </div>
 
-                <div className="field">
-                    <label htmlFor="lucro">Lucro</label>
-                    <InputText
-                        id="lucro"
-                        value={tipo.lucro}
-                        readOnly
-                    />
+                <div className={styles.viewField}>
+                <label className={styles.viewLabel}>Lucro:</label>
+                <div className={`${styles.viewValue} ${styles.positiveValue}`}>R$ {parseFloat(tipo.lucro).toFixed(2)}</div>
                 </div>
 
-                <div className="field">
-                    <label htmlFor="observacao">Observação</label>
-                    <InputTextarea
-                        id="observacao"
-                        value={tipo.observacao}
-                        readOnly
-                    />
+                <div className={styles.viewField}>
+                <label className={styles.viewLabel}>Observação:</label>
+                <div className={`${styles.viewValue} ${styles.observacaoTexto}`}>{tipo.observacao}</div>
                 </div>
 
-                <div className="field">
-                    <label htmlFor="setor">Setor</label>
-                    <InputText
-                        id="setor"
-                        value={tipo.setor.nome}
-                        readOnly
-                    />
+                <div className={styles.viewField}>
+                <label className={styles.viewLabel}>Setor:</label>
+                <div className={styles.viewValue}>{tipo.setor.nome}</div>
                 </div>
 
                 <div className="field">
