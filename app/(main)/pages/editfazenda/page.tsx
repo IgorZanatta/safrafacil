@@ -301,7 +301,11 @@ const Fazenda = () => {
             <h3 className="m-0">Editar Fazendas</h3>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Search..." />
+                <InputText
+                    type="search"
+                    onChange={(e) => setGlobalFilter(e.target.value)}
+                    placeholder="Buscar fazenda..."
+                />
             </span>
         </div>
     );
@@ -331,7 +335,7 @@ const Fazenda = () => {
         (!selectedSafra || (fazenda.safra && fazenda.safra.id === selectedSafra.id)) &&
         (!globalFilter || fazenda.nome.toLowerCase().includes(globalFilter.toLowerCase()))
     );
-
+    
     return (
         <div className="grid crud-demo">
             <div className="col-12">

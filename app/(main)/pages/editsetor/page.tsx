@@ -260,11 +260,11 @@ const Setor = () => {
         );
     };
 
-    const tamanhoBodyTemplate = (rowData: Projeto.Setor) => {
+    const safraBodyTemplate = (rowData: Projeto.Setor) => {
         return (
             <>
-                <span className="p-column-title">Tamanho</span>
-                {rowData.tamanho}
+                <span className="p-column-title">Safra</span>
+                {rowData.fazenda.safra.qual_safra}
             </>
         );
     };
@@ -307,20 +307,26 @@ const Setor = () => {
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h3 className="m-0">Editar Setores</h3>
-            <span className="block mt-2 md:mt-0 p-input-icon-left">
-                <i className="pi pi-search" />
-                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Buscar por nome..." />
-            </span>
-            <Dropdown
-                value={selectedTipoSetor}
-                options={tipoSetores.map(tipo => ({ label: tipo, value: tipo }))}
-                onChange={onTipoSetorChange}
-                placeholder="Selecione um Tipo de Setor"
-                className="ml-2"
-            />
+            <div className="flex flex-column md:flex-row mt-2 md:mt-0">
+                <span className="p-input-icon-left md:mr-2">
+                    <i className="pi pi-search" />
+                    <InputText
+                        type="search"
+                        onInput={(e) => setGlobalFilter(e.currentTarget.value)}
+                        placeholder="Buscar por nome..."
+                        className="w-full"
+                    />
+                </span>
+                <Dropdown
+                    value={selectedTipoSetor}
+                    options={tipoSetores.map(tipo => ({ label: tipo, value: tipo }))}
+                    onChange={onTipoSetorChange}
+                    placeholder="Selecione um Tipo de Setor"
+                    className="mt-2 md:ml-2 md:mt-0 w-full md:w-auto"
+                />
+            </div>
         </div>
     );
-
     const setorDialogFooter = (
         <>
             <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
@@ -372,8 +378,8 @@ const Setor = () => {
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="nome" header="Nome" sortable body={nomeBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="tipo_setor" header="Tipo Setor" sortable body={tipoSetorBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="tamanho" header="Tamanho" sortable body={tamanhoBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="fazenda" header="Fazenda" sortable body={fazendaBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="safra" header="Safra" sortable body={safraBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

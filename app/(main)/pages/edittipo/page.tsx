@@ -57,6 +57,9 @@ const Tipo = () => {
     const tipoService = new TipoService();
     const setorService = new SetorService();
     const [setores, setSetores] = useState<Projeto.Setor[]>([]);
+    const [filterFazenda, setFilterFazenda] = useState<number | null>(null);
+    const [fazendas, setFazendas] = useState<Projeto.Fazenda[]>([]);
+
 
     useEffect(() => {
         const usuarioId = localStorage.getItem('USER_ID');
@@ -97,6 +100,7 @@ const Tipo = () => {
                 });
         }
     }, [tipoDialog]);
+    
 
     const openNew = () => {
         setTipo(tipoVazio);
@@ -318,20 +322,31 @@ const Tipo = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h3 className="m-0">Editar Tipos de Atividades</h3>
-            <span className="block mt-2 md:mt-0 p-input-icon-left">
-                <i className="pi pi-search" />
-                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Search..." />
-            </span>
+          <h3 className="m-0">Editar Tipo de Atividade</h3>
+          <div className="flex flex-column md:flex-row mt-2 md:mt-0">
             <DropdownPrimeReact
-                value={filterTipoAtividade}
-                options={tipos.map((tipo) => ({ label: tipo.tipo_atividade, value: tipo.tipo_atividade }))}
-                onChange={(e: DropdownChangeEvent) => setFilterTipoAtividade(e.value)}
-                placeholder="Filtrar por Tipo de Atividade"
-                className="ml-2"
+              value={filterTipoAtividade}
+              options={tipos.map((tipo) => ({ label: tipo.tipo_atividade, value: tipo.tipo_atividade }))}
+              onChange={(e: DropdownChangeEvent) => setFilterTipoAtividade(e.value)}
+              placeholder="Filtrar por Tipo de Atividade"
+              className="w-full md:w-auto md:mr-2"
             />
+            <DropdownPrimeReact
+              value={filterFazenda}
+              options={tipos
+                .map((tipo) => ({
+                  label: `${tipo.setor.fazenda.nome} (${tipo.setor.fazenda.safra.qual_safra})`,
+                  value: tipo.setor.fazenda.id,
+                }))
+                .filter((v, i, a) => a.findIndex((t) => t.value === v.value) === i)}
+              onChange={(e: DropdownChangeEvent) => setFilterFazenda(e.value)}
+              placeholder="Filtrar por Fazenda"
+              className="w-full md:w-auto mt-2 md:mt-0"
+            />
+          </div>
         </div>
-    );
+      );
+      
 
     const tipoDialogFooter = (
         <React.Fragment>
@@ -362,8 +377,9 @@ const Tipo = () => {
 
     const filteredTipos = tipos.filter((tipo) => {
         return (
-            (filterTipoAtividade ? tipo.tipo_atividade === filterTipoAtividade : true) &&
-            (globalFilter ? tipo.tipo_atividade.toLowerCase().includes(globalFilter.toLowerCase()) : true)
+            (filterFazenda ? tipo.setor?.fazenda?.id === filterFazenda : true) && // Filtro por fazenda
+            (filterTipoAtividade ? tipo.tipo_atividade === filterTipoAtividade : true) && // Filtro por tipo de atividade
+            (globalFilter ? tipo.tipo_atividade.toLowerCase().includes(globalFilter.toLowerCase()) : true) // Filtro global
         );
     });
 
@@ -392,11 +408,9 @@ const Tipo = () => {
                 >
                     <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
                     <Column field="tipo_atividade" header="Tipo de Atividade" sortable></Column>
-                    <Column field="data" header="Data" sortable></Column>
-                    <Column field="gasto" header="Gasto" sortable></Column>
-                    <Column field="lucro" header="Lucro" sortable></Column>
-                    <Column field="observacao" header="Observação" sortable></Column>
                     <Column field="setor.nome" header="Setor" sortable></Column>
+                    <Column field="setor.fazenda.nome" header="Fazenda" sortable></Column>
+                    <Column field="setor.fazenda.safra.qual_safra" header="Safra" sortable></Column>
                     <Column body={actionBodyTemplate}></Column>
                 </DataTable>
             </div>
