@@ -21,22 +21,48 @@ const AppMenu = () => {
                 const fazendasResponse = await fazendaService.listarPorUsuario(Number(usuarioId)); // Chamando o serviço para listar fazendas do usuário
                 const fazendasData = fazendasResponse.data;
 
-                const fazendasComSetores = await Promise.all(fazendasData.map(async (fazenda: any) => {
-                    const setoresResponse = await setorService.listarPorFazenda(fazenda.id); // Chamando o serviço para listar setores da fazenda
-                    const setoresData = setoresResponse.data;
+                // Agrupar fazendas pelo nome
+                const farmsByName: { [key: string]: any[] } = {};
 
-                    return {
-                        label: `${fazenda.nome} - Safra: ${fazenda.safra.qual_safra}`,
-                        items: setoresData.map((setor: any) => ({
-                            label: setor.nome,
-                            icon: 'pi pi-fw pi-building',
-                            command: () => {
-                                localStorage.setItem('SETOR_ID', setor.id);
-                                window.location.href = '/pages/tipo_list/';
-                            }
-                        }))
-                    };
-                }));
+                for (const fazenda of fazendasData) {
+                    const farmName = fazenda.nome;
+
+                    if (!farmsByName[farmName]) {
+                        farmsByName[farmName] = [];
+                    }
+                    farmsByName[farmName].push(fazenda);
+                }
+
+                const fazendasComSetores = await Promise.all(
+                    Object.entries(farmsByName).map(async ([farmName, fazendas]) => {
+                        // Construir itens para cada safra
+                        const safrasItems = await Promise.all(
+                            fazendas.map(async (fazenda) => {
+                                const setoresResponse = await setorService.listarPorFazenda(fazenda.id); // Chamando o serviço para listar setores da fazenda
+                                const setoresData = setoresResponse.data;
+
+                                return {
+                                    label: `Safra: ${fazenda.safra.qual_safra}`,
+                                    icon: 'pi pi-fw pi-calendar',
+                                    items: setoresData.map((setor: any) => ({
+                                        label: setor.nome,
+                                        icon: 'pi pi-fw pi-building',
+                                        command: () => {
+                                            localStorage.setItem('SETOR_ID', setor.id);
+                                            window.location.href = '/pages/tipo_list/';
+                                        },
+                                    })),
+                                };
+                            })
+                        );
+
+                        return {
+                            label: farmName,
+                            icon: 'pi pi-fw pi-globe',
+                            items: safrasItems,
+                        };
+                    })
+                );
 
                 setFazendas(fazendasComSetores);
             } catch (error) {
@@ -49,14 +75,12 @@ const AppMenu = () => {
 
     const model: AppMenuItem[] = [
         {
-            label: 'Home',
-            items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/pages/home' }]
+            label: 'Menu',
+            items: [{ label: 'Tela Principal', icon: 'pi pi-fw pi-home', to: '/pages/home' }],
         },
         {
-            label: 'Fazenda',
-            items: [
-                ...fazendas
-            ]
+            label: 'Acesso Rápido',
+            items: [...fazendas],
         },
         {
             label: 'Fazenda',
@@ -96,8 +120,8 @@ const AppMenu = () => {
             label: 'Get Started',
             items: [
                 {
-                    label: 'Documentation',
-                    icon: 'pi pi-fw pi-question',
+                    label: 'Informações',
+                    icon: 'pi pi-info',
                     to: '/pages/document'
                 },
             ]
