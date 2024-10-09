@@ -235,7 +235,7 @@ const Fazenda = () => {
             <h3 className="m-0">Adicionar Fazendas</h3>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Search..." />
+                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Procurar por Nome" />
             </span>
         </div>
     );

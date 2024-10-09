@@ -25,7 +25,11 @@ const Setor = () => {
             id: 0,
             nome: '',
             tamanho: '',
-            safra: { id: 0, qual_safra: '', usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' } },
+            safra: {
+                id: 0,
+                qual_safra: '',
+                usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
+            },
             usuario: { id: 0, nome: '', senha: '', login: '', telefone: '' }
         }
     };
@@ -36,6 +40,8 @@ const Setor = () => {
     const [selectedSetores, setSelectedSetores] = useState<Projeto.Setor[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
+    const [selectedTipoSetor, setSelectedTipoSetor] = useState<string | null>(null);
+    const [tipoSetores, setTipoSetores] = useState<string[]>([]);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
     const setorService = new SetorService();
@@ -46,8 +52,13 @@ const Setor = () => {
         const userId = localStorage.getItem('USER_ID');
         if (userId) {
             setorService.listarPorUsuario(parseInt(userId)).then((response) => {
-                console.log(response.data);
-                setSetores(response.data);
+                const setoresData = response.data;
+                console.log(setoresData);
+                setSetores(setoresData);
+
+                // Extrair tipos de setor únicos
+                const tiposUnicos = Array.from(new Set(setoresData.map((setor: Projeto.Setor) => setor.tipo_setor))) as string[];
+                setTipoSetores(tiposUnicos);
             }).catch((error) => {
                 console.log(error);
             });
@@ -180,12 +191,11 @@ const Setor = () => {
             toast.current?.show({ severity: 'warn', summary: 'Atenção', detail: 'Nenhum setor selecionado!' });
             return;
         }
-    
+
         for (const setor of selectedSetores) {
-            // Verifica se o ID do setor está definido
             if (setor.id) {
                 try {
-                    await gerarRelatorioSetor(setor.id); // Gera o relatório apenas se o ID do setor estiver presente
+                    await gerarRelatorioSetor(setor.id);
                 } catch (error) {
                     console.error("Erro ao gerar relatório para o setor: ", setor.nome, error);
                     toast.current?.show({ severity: 'error', summary: 'Erro', detail: `Erro ao gerar PDF para o setor ${setor.nome}.` });
@@ -195,12 +205,9 @@ const Setor = () => {
                 toast.current?.show({ severity: 'error', summary: 'Erro', detail: `Setor ${setor.nome} está sem ID!` });
             }
         }
-    
+
         toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'PDF gerado com sucesso!' });
     };
-    
-    
-    
 
     const fazendaOptionTemplate = (option: Projeto.Fazenda) => {
         return (
@@ -219,11 +226,11 @@ const Setor = () => {
         );
     };
 
-    const tamanhoBodyTemplate = (rowData: Projeto.Setor) => {
+    const safraBodyTemplate = (rowData: Projeto.Setor) => {
         return (
             <>
-                <span className="p-column-title">Tamanho</span>
-                {rowData.tamanho}
+                <span className="p-column-title">Safra</span>
+                {rowData.fazenda.safra.qual_safra}
             </>
         );
     };
@@ -249,6 +256,7 @@ const Setor = () => {
     const actionBodyTemplate = (rowData: Projeto.Setor) => {
         return (
             <>
+                {/* Ações (se necessário) */}
             </>
         );
     };
@@ -256,8 +264,27 @@ const Setor = () => {
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h3 className="m-0">Adicionar Setores</h3>
+            <div className="flex flex-column md:flex-row mt-2 md:mt-0">
+                <span className="p-input-icon-left md:mr-2">
+                    <i className="pi pi-search" />
+                    <InputText
+                        type="search"
+                        onChange={(e) => setGlobalFilter(e.target.value)}
+                        placeholder="Buscar por nome..."
+                        className="w-full"
+                    />
+                </span>
+                <Dropdown
+                    value={selectedTipoSetor}
+                    options={tipoSetores.map(tipo => ({ label: tipo, value: tipo }))}
+                    onChange={(e: DropdownChangeEvent) => setSelectedTipoSetor(e.value)}
+                    placeholder="Selecione um Tipo de Setor"
+                    className="mt-2 md:ml-2 md:mt-0 w-full md:w-auto"
+                />
+            </div>
         </div>
     );
+    
 
     const setorDialogFooter = (
         <>
@@ -272,7 +299,10 @@ const Setor = () => {
         setSetor(_setor);
     }
 
-    const filteredSetores = setores?.filter(setor => setor.fazenda.usuario.id === parseInt(localStorage.getItem('USER_ID') || '0'));
+    const filteredSetores = setores?.filter(setor =>
+        (!selectedTipoSetor || setor.tipo_setor === selectedTipoSetor) &&
+        (!globalFilter || setor.nome.toLowerCase().includes(globalFilter.toLowerCase()))
+    );
 
     return (
         <div className="grid crud-demo">
@@ -293,7 +323,6 @@ const Setor = () => {
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} setores"
-                        globalFilter={globalFilter}
                         emptyMessage="Nenhum Setor Encontrado"
                         header={header}
                         responsiveLayout="scroll"
@@ -301,8 +330,8 @@ const Setor = () => {
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                         <Column field="nome" header="Nome" sortable body={nomeBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="tipo_setor" header="Tipo Setor" sortable body={tipoSetorBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="tamanho" header="Tamanho" sortable body={tamanhoBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="fazenda" header="Fazenda" sortable body={fazendaBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="safra" header="Safra" sortable body={safraBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
                     </DataTable>
 
                     <Dialog visible={setorDialog} style={{ width: '450px' }} header="Detalhes do Setor" modal className="p-fluid" footer={setorDialogFooter} onHide={hideDialog}>
