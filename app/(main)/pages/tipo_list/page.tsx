@@ -552,7 +552,7 @@ const TipoListDemo = () => {
 
                 <div className="field">
                     <label htmlFor="anexos">Foto</label>
-                    <FileUpload mode="basic" name="anexos" accept="image/*" maxFileSize={1000000} customUpload auto uploadHandler={(e) => setFile(e.files[0])} />
+                    <FileUpload mode="basic" name="anexos" accept="image/*" maxFileSize={1000000} customUpload auto uploadHandler={(e) => setFile(e.files[0])} chooseLabel="Adicionar Imagem" />
                     {submitted && !file && !tipo.anexos && <small className="p-invalid">Foto é requerida.</small>}
                 </div>
             </Dialog>
