@@ -118,7 +118,7 @@ const LoginPage = () => {
                                     Sou novo por aqui!
                                 </Link>
                                 <Link href="/auth/newpassword" className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
-                                    Forgot password?
+                                    Esqueci Minha Senha!
                                 </Link>
                             </div>
                             <Button label="Entrar" className="w-full p-3 text-xl" onClick={efetuarLogin}></Button>
