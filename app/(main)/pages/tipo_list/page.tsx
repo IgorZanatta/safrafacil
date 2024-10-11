@@ -107,8 +107,36 @@ const TipoListDemo = () => {
                     });
                 });
             }
+            
+
+            
         }
+
+        
     }, []);
+
+    useEffect(() => {
+        const usuarioId = localStorage.getItem('USER_ID');
+        if (!usuarioId) {
+          window.location.href = '/login';
+          return;
+        }
+    
+        if (tipoDialog) {
+          setorService.listarPorUsuario(Number(usuarioId))
+            .then((response) => setSetores(response.data))
+            .catch(error => {
+              console.log(error);
+              toast.current?.show({
+                severity: 'error',
+                summary: 'Erro!',
+                detail: 'Erro ao carregar a lista de setores!'
+              });
+            });
+        }
+      }, [tipoDialog]);
+    
+    
 
     const onFilterChange = (event: DropdownChangeEvent) => {
         const value = event.value;
@@ -446,7 +474,7 @@ const TipoListDemo = () => {
                                 severity="success"
                                 onClick={openNew}
                             />
-                            <Link href="/pages/tipo" passHref>
+                            <Link href="/pages/edittipo" passHref>
                                 <Button
                                     label="Editar Tipo"
                                     icon="pi pi-pencil"
