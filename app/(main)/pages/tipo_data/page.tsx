@@ -354,21 +354,13 @@ const TipoListDemo = () => {
                     <div className="flex flex-column md:flex-row align-items-center p-3 w-full">
                         <img src={`data:image/jpeg;base64,${data.anexos}`} alt={data.tipo_atividade} className="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5" />
                         <div className="flex-1 flex flex-column align-items-center text-center md:text-left">
-                            <div className="font-bold text-2xl">{data.tipo_atividade}</div>
-                            <div className="mb-2">
-                                {data.data
-                                    ? formatDateToDDMMYYYY(
-                                        typeof data.data === 'string' ? parseDateString(data.data) : data.data
-                                    )
-                                    : ''}
+                            <div className="font-bold text-2xl mb-3">{data.tipo_atividade}</div>
+                            <div className="text-lg font-semibold mb-1" style={{ color: '#555' }}>
+                                {data.setor?.fazenda?.nome}
                             </div>
-                            <div className="flex align-items-center">
-                                <i className="pi pi-tag mr-2"></i>
-                                <span className="font-semibold">{data.gasto}</span>
+                            <div className="text-lg font-semibold" style={{ color: '#555' }}>
+                                {data.setor?.fazenda?.safra?.qual_safra}
                             </div>
-                        </div>
-                        <div className="flex flex-row md:flex-column justify-content-between w-full md:w-auto align-items-center md:align-items-end mt-5 md:mt-0">
-                            <span className="text-2xl font-semibold mb-2 align-self-center md:align-self-end">{data.lucro}</span>
                         </div>
                     </div>
                 </div>
@@ -377,21 +369,14 @@ const TipoListDemo = () => {
             return (
                 <div className="col-12 lg:col-4" onClick={openViewTipoDialog}>
                     <div className="card m-3 border-1 surface-border">
-                        <div className="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
-                            <div className="flex align-items-center">
-                                <i className="pi pi-tag mr-2" />
-                                <span className="font-semibold">{data.tipo_atividade}</span>
-                            </div>
-                        </div>
                         <div className="flex flex-column align-items-center text-center mb-3">
                             <img src={`data:image/jpeg;base64,${data.anexos}`} alt={data.tipo_atividade} className="w-9 shadow-2 my-3 mx-0" />
-                            <div className="text-2xl font-bold">{data.tipo_atividade}</div>
-                            <div className="mb-3">
-                                {data.data
-                                    ? formatDateToDDMMYYYY(
-                                        typeof data.data === 'string' ? parseDateString(data.data) : data.data
-                                    )
-                                    : ''}
+                            <div className="text-2xl font-bold mb-3">{data.tipo_atividade}</div>
+                            <div className="text-lg font-semibold mb-1" style={{ color: '#555' }}>
+                                {data.setor?.fazenda?.nome}
+                            </div>
+                            <div className="text-lg font-semibold" style={{ color: '#555' }}>
+                                {data.setor?.fazenda?.safra?.qual_safra}
                             </div>
                         </div>
                     </div>
