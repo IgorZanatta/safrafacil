@@ -298,7 +298,7 @@ const Tipo = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedTipos || !selectedTipos.length} />
+                    <Button label="Excluir" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedTipos || !selectedTipos.length} />
                 </div>
             </React.Fragment>
         );
